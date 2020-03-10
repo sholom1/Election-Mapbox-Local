@@ -1,5 +1,5 @@
 'use strict'
-import mapboxgl from 'mapbox-gl/dist/mapbox-gl.js';
+const mapboxgl = require("mapbox-gl")
 print("test");
 mapboxgl.accessToken = 'pk.eyJ1Ijoic2hvbG9tMSIsImEiOiJjazdtNXkxb2UwZXAzM2tvbTlzempjcGV1In0.zAVBsEkEYNpTAfw20fw2GA';
 var map = new mapboxgl.Map({
