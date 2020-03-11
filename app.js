@@ -19,7 +19,7 @@ var map = new mapboxgl.Map({
 map.on('load', function(){
   map.addSource('Districts', {
     type: 'geojson',
-    data: 'https://sholom1.github.io/Election-Mapbox-Local.Election%20Districts.geojson'
+    data: 'https://sholom1.github.io/Election-Mapbox-Local/Election%20Districts.geojson'
   })
   map.addLayer({
     'id': 'Districts',
