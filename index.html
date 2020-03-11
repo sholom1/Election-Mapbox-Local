@@ -3,7 +3,6 @@
     <head>
         <meta charset="utf-8">
         <title>A mapbox thingy</title>
-        <link rel="stylesheet" href="main.css">
         <link href='https://api.mapbox.com/mapbox-gl-js/v1.8.0/mapbox-gl.css' rel='stylesheet' />
     </head>
     <body>
@@ -15,11 +14,12 @@
             <li class="list">Edit the body</li>
             <li>Link to JavaScript</li>
         </ul>
-        <script src="app.js"></script>
+        
         <noscript>You need to enable JavaScript to view the full site.</noscript>
         </h1>
     </body>
-    <body id="map">
-    </body>
+    <body id="map"></body>
+    <div class="mapboxgl-canvas-container" id="map"><map name="map"></map></div>
     <link href="https://api.mapbox.com/mapbox-gl-js/v1.8.0/mapbox-gl.css" rel = 'stylesheet' />
+    <script src="bundle.js"></script>
 </html>
