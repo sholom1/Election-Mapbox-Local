@@ -3,8 +3,8 @@ print("test");
 mapboxgl.accessToken = 'pk.eyJ1Ijoic2hvbG9tMSIsImEiOiJjazdtNXkxb2UwZXAzM2tvbTlzempjcGV1In0.zAVBsEkEYNpTAfw20fw2GA';
 var map = new mapboxgl.Map({
     container: 'map',
-    center: [40.6782, 73.9442],
-    zoom: 13,
+    center: [-73.952319, 40.631056],
+    zoom: 9.91,
     hash: true,
     style:'mapbox://styles/sholom1/ck7m6023r0ike1ipsvptitk9c',
     transformRequest: (url, resourceType)=> {
