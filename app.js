@@ -1,5 +1,7 @@
 const mapboxgl = require("mapbox-gl")
 const jQuery = require("jquery")
+const xlsx = require("xlsx")
+const fs = require("fs")
 mapboxgl.accessToken = 'pk.eyJ1Ijoic2hvbG9tMSIsImEiOiJjazdtNXkxb2UwZXAzM2tvbTlzempjcGV1In0.zAVBsEkEYNpTAfw20fw2GA';
 var map = new mapboxgl.Map({
     container: 'map',
@@ -19,14 +21,23 @@ var map = new mapboxgl.Map({
   });
   map.on('load', function(){
     var districtData
-    loadJSON(function(response) {
+    loadJSON('https://sholom1.github.io/Election-Mapbox-Local/Election%20Districts.geojson', 
+      function(response) {
       // Parsing JSON string into object
         districtData = JSON.parse(response);
+        loadXLSX('https://sholom1.github.io/Election-Mapbox-Local/ElectionData.xlsx',
+          function(xlsxfile){
+          var book = xlsx.read(xlsxfile, {type: 'array'})
+          var sheet = book.Sheets[book.SheetNames[0]];
+          var range = xlsx.utils.decode_range(sheet['!ref'])
+          console.log(xlsxfile)
+          });
+        
         var expression = ['match', ['get', 'elect_dist']];
         for(feature in districtData.features){
           districtData.features[feature].properties['color'] = getRandomColor()
           expression.push(districtData.features[feature].properties.elect_dist, getRandomColor());
-          console.log(districtData.features[feature])
+          //console.log(districtData.features[feature])
         }
         expression.push('rgba(0,0,0,0)');
         map.addSource('districts', {
@@ -48,11 +59,22 @@ var map = new mapboxgl.Map({
     
     
   })
-function loadJSON(callback) {   
+function loadJSON(filename, callback) {   
 
   var xobj = new XMLHttpRequest();
       xobj.overrideMimeType("application/json");
-  xobj.open('GET', 'https://sholom1.github.io/Election-Mapbox-Local/Election%20Districts.geojson', true); // Replace 'appDataServices' with the path to your file
+  xobj.open('GET', filename, true); 
+  xobj.onreadystatechange = function () {
+        if (xobj.readyState == 4 && xobj.status == "200") {
+          // Required use of an anonymous callback as .open will NOT return a value but simply returns undefined in asynchronous mode
+          callback(xobj.responseText);
+        }
+  };
+  xobj.send(null);  
+}
+function loadXLSX(filename, callback){
+  var xobj = new XMLHttpRequest();
+  xobj.open('GET', filename, true); 
   xobj.onreadystatechange = function () {
         if (xobj.readyState == 4 && xobj.status == "200") {
           // Required use of an anonymous callback as .open will NOT return a value but simply returns undefined in asynchronous mode
@@ -68,4 +90,10 @@ function getRandomColor() {
     color += letters[Math.floor(Math.random() * 16)];
   }
   return color;
+}
+function joinDistrictNumbers(assembly, district){
+  while(district.length <= 2){
+    district = "0" + district;
+  }
+  return assembly + district;
 }
