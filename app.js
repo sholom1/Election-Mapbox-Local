@@ -148,6 +148,10 @@ function getPartyColor(candidate){
     return "#0015BC"
   else if (candidate.includes("Working Families"))
     return "#800080"
+  else if (candidate.includes("Republican"))
+    return "#FF0000"
+  else if (candidate.includes("Reform"))
+    return "#FF4500"
   else
     return "#C0C0C0"
 }
