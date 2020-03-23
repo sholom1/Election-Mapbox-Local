@@ -19,6 +19,9 @@ var map = new mapboxgl.Map({
     }
   }
 });
+
+//create results object
+var districtElectionResults = {};
 map.on('load', function(){
   var districtData
   loadJSON('https://sholom1.github.io/Election-Mapbox-Local/Election%20Districts.geojson', 
@@ -27,9 +30,9 @@ map.on('load', function(){
       districtData = JSON.parse(response);
       loadXLSX("https://sholom1.github.io/Election-Mapbox-Local/ElectionData.xlsx", 
         function(worksheet){
-          console.log(worksheet);
+          //console.log(worksheet);
+          //parse rows & columns
           var range = xlsx.utils.decode_range(worksheet['!ref']);
-          var districtElectionResults = {};
           let resultFilter = ["Manually Counted Emergency", "Absentee / Military", "Federal", "Affidavit", "Scattered"]
           for(let row = range.s.r, prefix = {}; row < range.e.r; row++){
             if (prefix.number != worksheet['A' + (row + 1).toString()].v){
@@ -42,19 +45,22 @@ map.on('load', function(){
               //console.log(worksheet['C' + (row + 1).toString()].v.toString())
               continue;
             }
-            if (districtElectionResults[joinDistrictNumbers(prefix.number.toString(), worksheet['B' + (row + 1).toString()].v.toString())] == undefined){
-              districtElectionResults[joinDistrictNumbers(prefix.number.toString(), worksheet['B' + (row + 1).toString()].v.toString())] = {}
+            let districtNumber = joinDistrictNumbers(prefix.number.toString(), worksheet['B' + (row + 1).toString()].v.toString());
+            if (districtElectionResults[districtNumber] == undefined){
+              districtElectionResults[districtNumber] = {}
             }
-            let results = districtElectionResults[joinDistrictNumbers(prefix.number.toString(), worksheet['B' + (row + 1).toString()].v.toString())]
+            let results = districtElectionResults[districtNumber]
             results[worksheet['C' + (row + 1).toString()].v] = worksheet['D' + (row + 1).toString()].v
-            console.log(worksheet['C' + (row + 1).toString()].v)
-            console.log(worksheet['D' + (row + 1).toString()].v)
+            //console.log(worksheet['C' + (row + 1).toString()].v)
+            //console.log(worksheet['D' + (row + 1).toString()].v)
           }
           console.log(districtElectionResults)
-          var expression = ['match', ['get', 'elect_dist']];
+          let colorExpression = ['match', ['get', 'elect_dist']];
+          let opacityExpression = ['match', ['get', 'elect_district']]
           for(feature in districtData.features){
-            var featureData = districtData.features[feature];
+            let featureData = districtData.features[feature];
             let color;
+            let opacity;
             //console.log(featureData.properties.elect_dist);
             if (featureData.properties.elect_dist in districtElectionResults){
               let prevBallot = {
@@ -70,18 +76,25 @@ map.on('load', function(){
                 }
               }
               color = getPartyColor(prevBallot.name instanceof String ? prevBallot.name : prevBallot.name.toString());
+              opacity = (prevBallot.votes/districtElectionResults[featureData.properties.elect_dist]["Public Counter"])
+              console.log(opacity);
             }
-            else
+            else{
               color = getRandomColor();
+              opacity = 0.8;
+            }
             featureData.properties['color'] = color
+            featureData.properties['victory margin'] = opacity
             featureData.properties['results'] = districtElectionResults[featureData.properties.elect_dist]
-            expression.push(featureData.properties.elect_dist, color);
+            colorExpression.push(featureData.properties.elect_dist, color);
+            opacityExpression.push(featureData.properties.elect_dist, opacity);
             //console.log(featureData)
           }
-          expression.push('rgba(0,0,0,0)');
+          colorExpression.push('rgba(0,0,0,0)');
+          opacityExpression.push(.5);
           map.addSource('districts', {
             'type': 'geojson',
-            'data': 'https://sholom1.github.io/Election-Mapbox-Local/Election%20Districts.geojson',
+            'data': districtData,
             'generateId': true // This ensures that all features have unique IDs
           });
           map.addLayer({
@@ -90,12 +103,35 @@ map.on('load', function(){
             'source': 'districts',
             'layout': {},
             'paint': {
-            'fill-color': expression,
-            'fill-opacity': 0.8
+                'fill-color': colorExpression,
+                'fill-opacity': opacityExpression
+              }
+          });
+          map.addLayer({
+            'id': 'election-district-borders',
+            'type': 'line',
+            'source': 'districts',
+            'layout': {},
+            'paint': {
+              'line-color': '#000000',
+              'line-width': 2
             }
-            });
+          });
         });
     });
+})
+map.on("mousemove", 'election-district-visualization', function(e){
+  if (e.features.length > 0){
+    if(e.features[0].properties.results){
+      console.log(e.features[0].properties.results);
+      let details = "<p>Election District: " + e.features[0].properties.elect_dist + "</p>"  
+      for(candidate in districtElectionResults[e.features[0].properties.elect_dist]){
+        details += "<span class = \"color-box\" "+"style=\"backround-color: " + getPartyColor(candidate) + ";\"></span><p>" + candidate + ": " + districtElectionResults[e.features[0].properties.elect_dist][candidate]+"</p>"
+      }
+      details += ""
+      document.getElementById("Data-Box").innerHTML = details;
+    }
+  }
 })
 function loadJSON(filename, callback) {   
 

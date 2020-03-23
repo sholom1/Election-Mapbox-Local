@@ -4,12 +4,6 @@ body{
 ul{
     font-family: monospace;
 }
-li{
-    list-style: circle;
-}
-.list{
-    list-style: square;
-}
 #date{
     font-size: 12px;
     font-style: italic;
