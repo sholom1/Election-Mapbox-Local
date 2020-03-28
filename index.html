@@ -8,7 +8,7 @@
         <link href="https://api.mapbox.com/mapbox-gl-js/v1.8.1/mapbox-gl.css" rel="stylesheet" />
         <style>
             body { margin: 0; padding: 0; }
-            #map { position: absolute; top: 0; bottom: 0; width: 100%; }
+            #map { position: absolute; top: 40px; bottom: 0; width: 100%; }
             .databox {
                 height: 30%;
                 width: 25%;
@@ -24,6 +24,9 @@
                 margin: 0;
                 font-size: 13px;
             }
+            #Data-Box{
+                position: relative;
+            }
             .color-box {
                 width: 10px;
                 height: 10px;
@@ -32,9 +35,23 @@
                 left: 5px;
                 top: 5px;
             }
+            #custom-file-button{
+                padding: 10px;
+                color:white;
+                background-color: green;
+                border: 1px solid black;
+                border-radius: 5px;
+                cursor: pointer;
+            }
+            #custom-file-button:hover{
+                background-color: #90ee90;
+            }
         </style>
     </head>
     <body>
+        <input type="file" id="real-file" hidden='hidden'/>
+        <button type="button" id="custom-file-button">Choose a file</button>
+        <span id="file-text">No file chosen</span>
         <div id="map"></div>
         <div class="databox">
             <P>Election results</P>
