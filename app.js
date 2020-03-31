@@ -5,13 +5,17 @@ const fs = require("fs")
 mapboxgl.accessToken = 'pk.eyJ1Ijoic2hvbG9tMSIsImEiOiJjazdtNXkxb2UwZXAzM2tvbTlzempjcGV1In0.zAVBsEkEYNpTAfw20fw2GA';
 const geoData = {type:"FeatureCollection", features:[]}
 const electionData = []
+var filesUploaded = parseInt("0")
+const filetxt = document.getElementById("file-text")
+const filePaths = []
 
 loadJSONURL('https://sholom1.github.io/Election-Mapbox-Local/Election%20Districts.geojson', addNewJSONObject)
 loadXLSXURL("https://sholom1.github.io/Election-Mapbox-Local/ElectionData.xlsx", addNewXLSXWorksheet)
 loadMap();
 const customBtn = document.getElementById("custom-file-button")
 const realBtn = document.getElementById("real-file")
-const filetxt = document.getElementById("file-text")
+const detailsButton = document.getElementById("details-button")
+
 
 customBtn.addEventListener("click",function(){
   realBtn.click();
@@ -27,7 +31,14 @@ realBtn.addEventListener("change", function(event){
       addNewJSONObject(e);
     })
   }
+  let box = document.getElementById("details-box")
+  if(box.style.display == "block")
+    ShowFileInfo(true)
   loadMap();
+})
+detailsButton.addEventListener("click", function(){
+  console.log("click")
+  ShowFileInfo(false);
 })
 function loadMap(){
   var map = new mapboxgl.Map({
@@ -46,7 +57,6 @@ function loadMap(){
       }
     }
   });
-  //loadJSONURL('https://sholom1.github.io/Election-Mapbox-Local/Election%20Districts.geojson', addNewJSONObject)
   //create results object
   var districtElectionResults = {};
   map.on('load', function(){
@@ -156,11 +166,11 @@ function loadMap(){
     if (e.features.length > 0){
       if(e.features[0].properties.results){
         console.log(e.features[0].properties.results);
-        let details = "<p>Election District: " + e.features[0].properties.elect_dist + "</p>"  
+        let details = "<ul><p>Election District: " + e.features[0].properties.elect_dist + "</p>"  
         for(candidate in districtElectionResults[e.features[0].properties.elect_dist]){
-          details += "<span class = \"color-box\" "+"style=\"backround-color: " + getPartyColor(candidate) + ";\"></span><p>" + candidate + ": " + districtElectionResults[e.features[0].properties.elect_dist][candidate]+"</p>"
+          details += "<li><p class = \"ballot-entry\"><span class = \"color-box\" "+"style=\"background-color: " + getPartyColor(candidate) + ";\"></span>\t" + candidate + ": " + districtElectionResults[e.features[0].properties.elect_dist][candidate]+"</p></li>"
         }
-        details += ""
+        details += "</ul>"
         document.getElementById("Data-Box").innerHTML = details;
       }
     }
@@ -176,7 +186,9 @@ function loadJSONURL(filename, callback) {
       callback(JSON.parse(xobj.responseText));
     }
   };
-  xobj.send(null);  
+  xobj.send(null);
+  incrementFileCounter()
+  filePaths.push(filename) 
 }
 function loadXLSXURL(filename, callback){
   let oReq = new XMLHttpRequest();
@@ -194,7 +206,9 @@ function loadXLSXURL(filename, callback){
     let workbook = xlsx.read(bstr, {type:"binary", raw:true})
     callback(workbook.Sheets[workbook.SheetNames[0]]);
   }
-  oReq.send(null);  
+  oReq.send(null);
+  incrementFileCounter()
+  filePaths.push(filename)
 }
 
 function loadXLSXLocal(filename, callback){
@@ -209,6 +223,8 @@ function loadXLSXLocal(filename, callback){
     callback(workbook.Sheets[workbook.SheetNames[0]]);
   }
   reader.readAsArrayBuffer(filename);
+  incrementFileCounter()
+  filePaths.push(filename.name)
 }
 function loadJSONLocal(filename, callback){
   let reader = new FileReader();
@@ -216,6 +232,8 @@ function loadJSONLocal(filename, callback){
     callback(JSON.parse(reader.result));
   }
   reader.readAsText(filename);
+  incrementFileCounter()
+  filePaths.push(filename.name)
 }
 function getRandomColor() {
   var letters = '0123456789ABCDEF';
@@ -266,4 +284,26 @@ function isElectionDistrictInSavedGeoJSON(electionDist){
       return true;
   }
   return false;
+}
+function incrementFileCounter(){
+  filesUploaded+=1
+  filetxt.innerHTML = "Files loaded: " + filesUploaded
+}
+function ShowFileInfo(visibility){
+  let list = document.getElementById("file-list");
+  let box = document.getElementById("details-box")
+  if (box.style.display == "none" || visibility){
+    box.style.display = "block"
+    let iHTML = ""
+    for (fileNameIndex in filePaths){
+      let filename = filePaths[fileNameIndex];
+      if(filename.includes("http"))
+        iHTML += "<li><a href=\"" + filename + "\">" + filename + "</a></li>"
+      else
+        iHTML += "<li><a href=\"" + filename + "\">" + filename + "</a></li>"
+    }
+    list.innerHTML = iHTML
+  }else{
+    box.style.display = "none"
+  }
 }
