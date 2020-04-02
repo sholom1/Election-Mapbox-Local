@@ -15,7 +15,9 @@ loadMap();
 const customBtn = document.getElementById("custom-file-button")
 const realBtn = document.getElementById("real-file")
 const detailsButton = document.getElementById("details-button")
+const box = document.getElementById("details-box")
 
+if (box.style.display == "") box.style.display = "none"
 
 customBtn.addEventListener("click",function(){
   realBtn.click();
@@ -37,7 +39,7 @@ realBtn.addEventListener("change", function(event){
   loadMap();
 })
 detailsButton.addEventListener("click", function(){
-  console.log("click")
+  detailsButton.classList.toggle("change")
   ShowFileInfo(false);
 })
 function loadMap(){
@@ -291,7 +293,7 @@ function incrementFileCounter(){
 }
 function ShowFileInfo(visibility){
   let list = document.getElementById("file-list");
-  let box = document.getElementById("details-box")
+  
   if (box.style.display == "none" || visibility){
     box.style.display = "block"
     let iHTML = ""
