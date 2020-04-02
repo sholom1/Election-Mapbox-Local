@@ -8,14 +8,14 @@ const electionData = []
 var filesUploaded = parseInt("0")
 const filetxt = document.getElementById("file-text")
 const filePaths = []
-
-loadJSONURL('https://sholom1.github.io/Election-Mapbox-Local/Election%20Districts.geojson', addNewJSONObject)
-loadXLSXURL("https://sholom1.github.io/Election-Mapbox-Local/ElectionData.xlsx", addNewXLSXWorksheet)
-loadMap();
 const customBtn = document.getElementById("custom-file-button")
 const realBtn = document.getElementById("real-file")
 const detailsButton = document.getElementById("details-button")
 const box = document.getElementById("details-box")
+
+loadJSONURL('https://sholom1.github.io/Election-Mapbox-Local/Election%20Districts.geojson', addNewJSONObject)
+loadXLSXURL("https://sholom1.github.io/Election-Mapbox-Local/ElectionData.xlsx", addNewXLSXWorksheet)
+loadMap();
 
 if (box.style.display == "") box.style.display = "none"
 
