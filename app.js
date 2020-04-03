@@ -14,8 +14,10 @@ const detailsButton = document.getElementById("details-button")
 const box = document.getElementById("details-box")
 
 loadJSONURL('https://sholom1.github.io/Election-Mapbox-Local/Election%20Districts.geojson', addNewJSONObject)
-loadXLSXURL("https://sholom1.github.io/Election-Mapbox-Local/ElectionData.xlsx", addNewXLSXWorksheet)
-loadMap();
+loadXLSXURL("https://sholom1.github.io/Election-Mapbox-Local/ElectionData.xlsx", function(sheet){
+  addNewXLSXWorksheet(sheet)
+  loadMap();
+});
 
 if (box.style.display == "") box.style.display = "none"
 
