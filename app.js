@@ -2,48 +2,56 @@ const mapboxgl = require("mapbox-gl")
 const jQuery = require("jquery")
 const xlsx = require("xlsx")
 const fs = require("fs")
-mapboxgl.accessToken = 'pk.eyJ1Ijoic2hvbG9tMSIsImEiOiJjazdtNXkxb2UwZXAzM2tvbTlzempjcGV1In0.zAVBsEkEYNpTAfw20fw2GA';
+var filetxt = document.getElementById("file-text");
+const filePaths = []; 
+var customBtn = document.getElementById("custom-file-button"); 
+var realBtn = document.getElementById("real-file"); 
+var detailsButton = document.getElementById("details-button"); 
+var box = document.getElementById("details-box");
 const geoData = {type:"FeatureCollection", features:[]}
 const electionData = []
 var filesUploaded = parseInt("0")
-const filetxt = document.getElementById("file-text")
-const filePaths = []
-const customBtn = document.getElementById("custom-file-button")
-const realBtn = document.getElementById("real-file")
-const detailsButton = document.getElementById("details-button")
-const box = document.getElementById("details-box")
 
-loadJSONURL('https://sholom1.github.io/Election-Mapbox-Local/Election%20Districts.geojson', addNewJSONObject)
-loadXLSXURL("https://sholom1.github.io/Election-Mapbox-Local/ElectionData.xlsx", function(sheet){
-  addNewXLSXWorksheet(sheet)
-  loadMap();
+jQuery(document).ready(function(){
+  mapboxgl.accessToken = 'pk.eyJ1Ijoic2hvbG9tMSIsImEiOiJjazdtNXkxb2UwZXAzM2tvbTlzempjcGV1In0.zAVBsEkEYNpTAfw20fw2GA';
+  filetxt = document.getElementById("file-text")
+  customBtn = document.getElementById("custom-file-button")
+  realBtn = document.getElementById("real-file")
+  detailsButton = document.getElementById("details-button")
+  box = document.getElementById("details-box")
+
+  loadJSONURL('https://sholom1.github.io/Election-Mapbox-Local/Election%20Districts.geojson', addNewJSONObject)
+  loadXLSXURL("https://sholom1.github.io/Election-Mapbox-Local/ElectionData.xlsx", function(sheet){
+    addNewXLSXWorksheet(sheet)
+    loadMap();
+  });
+
+  if (box.style.display == "") box.style.display = "none"
+
+  customBtn.addEventListener("click",function(){
+    realBtn.click();
+  })
+  realBtn.addEventListener("change", function(event){
+    if (event.target.files[0].name.includes(".xlsx")){
+      loadXLSXLocal(event.target.files[0], function(e){
+        console.log(e);
+      })
+    }else if (event.target.files[0].name.includes(".geojson")){
+      loadJSONLocal(event.target.files[0], function(e){
+        //console.log(e);
+        addNewJSONObject(e);
+      })
+    }
+    let box = document.getElementById("details-box")
+    if(box.style.display == "block")
+      ShowFileInfo(true)
+    loadMap();
+  })
+  detailsButton.addEventListener("click", function(){
+    detailsButton.classList.toggle("change")
+    ShowFileInfo(false);
+  })
 });
-
-if (box.style.display == "") box.style.display = "none"
-
-customBtn.addEventListener("click",function(){
-  realBtn.click();
-})
-realBtn.addEventListener("change", function(event){
-  if (event.target.files[0].name.includes(".xlsx")){
-    loadXLSXLocal(event.target.files[0], function(e){
-      console.log(e);
-    })
-  }else if (event.target.files[0].name.includes(".geojson")){
-    loadJSONLocal(event.target.files[0], function(e){
-      //console.log(e);
-      addNewJSONObject(e);
-    })
-  }
-  let box = document.getElementById("details-box")
-  if(box.style.display == "block")
-    ShowFileInfo(true)
-  loadMap();
-})
-detailsButton.addEventListener("click", function(){
-  detailsButton.classList.toggle("change")
-  ShowFileInfo(false);
-})
 function loadMap(){
   var map = new mapboxgl.Map({
     container: 'map',
