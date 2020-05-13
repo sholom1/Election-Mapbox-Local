@@ -222,7 +222,7 @@ function loadXLSXURL(filename, callback){
   incrementFileCounter()
   filePaths.push(filename)
 }
-function clearData(geojson, xlsx){
+const clearData = function (geojson, xlsx){
   if (geojson == true)
     geoData.features = []
   if (xlsx == true)
