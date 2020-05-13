@@ -180,7 +180,7 @@ function loadMap(){
         console.log(e.features[0].properties.results);
         let details = "<ul><p>Election District: " + e.features[0].properties.elect_dist + "</p>"  
         for(candidate in districtElectionResults[e.features[0].properties.elect_dist]){
-          details += "<li><p class = \"ballot-entry\"><span class = \"color-box\" "+"style=\"background-color: " + getPartyColor(candidate) + ";\"></span>\t" + candidate + ": " + districtElectionResults[e.features[0].properties.elect_dist][candidate]+"</p></li>"
+          details += "<li class=\"ballot-entry\"><p class = \"ballot-text\"><span class = \"color-box\" "+"style=\"background-color: " + getPartyColor(candidate) + ";\"></span>\t" + candidate + ": " + districtElectionResults[e.features[0].properties.elect_dist][candidate]+"</p></li>"
         }
         details += "</ul>"
         document.getElementById("Data-Box").innerHTML = details;
@@ -222,7 +222,12 @@ function loadXLSXURL(filename, callback){
   incrementFileCounter()
   filePaths.push(filename)
 }
-
+function clearData(geojson, xlsx){
+  if (geojson == true)
+    geoData.features = []
+  if (xlsx == true)
+    electionData = []
+}
 function loadXLSXLocal(filename, callback){
   let reader = new FileReader();
   reader.onload = function(){
