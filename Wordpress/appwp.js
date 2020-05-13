@@ -227,6 +227,9 @@ function clearData(geojson, xlsx){
     geoData.features = []
   if (xlsx == true)
     electionData = []
+  console.log("data cleared")
+  console.log(geoData.features)
+  console.log(electionData)
 }
 function loadXLSXLocal(filename, callback){
   let reader = new FileReader();
