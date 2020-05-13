@@ -188,6 +188,17 @@ function loadMap(){
     }
   })
 }
+const utils = {
+  ClearData:function (geojson, xlsx){
+    if (geojson == true)
+      geoData.features = []
+    if (xlsx == true)
+      electionData = []
+    console.log("data cleared")
+    console.log(geoData.features)
+    console.log(electionData)
+  }
+}
 function loadJSONURL(filename, callback) {   
   var xobj = new XMLHttpRequest();
   xobj.overrideMimeType("application/json");
