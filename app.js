@@ -9,7 +9,7 @@ var realBtn = document.getElementById("real-file");
 var detailsButton = document.getElementById("details-button"); 
 var box = document.getElementById("details-box");
 const geoData = {type:"FeatureCollection", features:[]}
-const electionData = []
+var electionData = []
 var filesUploaded = parseInt("0")
 
 jQuery(document).ready(function(){
@@ -190,7 +190,7 @@ function loadMap(){
 }
 module.exports = {
   utils:{
-    ClearData:function (geojson, xlsx){
+    ClearData:function (geojson, xlsx, load){
     if (geojson == true)
       geoData.features = []
     if (xlsx == true)
@@ -198,6 +198,8 @@ module.exports = {
     console.log("data cleared")
     console.log(geoData.features)
     console.log(electionData)
+    if(load == true)
+      loadMap();
     }
   }
 }
