@@ -188,8 +188,9 @@ function loadMap(){
     }
   })
 }
-const utils = {
-  ClearData:function (geojson, xlsx){
+module.exports = {
+  utils:{
+    ClearData:function (geojson, xlsx){
     if (geojson == true)
       geoData.features = []
     if (xlsx == true)
@@ -197,6 +198,7 @@ const utils = {
     console.log("data cleared")
     console.log(geoData.features)
     console.log(electionData)
+    }
   }
 }
 function loadJSONURL(filename, callback) {   
