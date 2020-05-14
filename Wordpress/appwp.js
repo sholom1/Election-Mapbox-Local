@@ -222,14 +222,18 @@ function loadXLSXURL(filename, callback){
   incrementFileCounter()
   filePaths.push(filename)
 }
-const clearData = function (geojson, xlsx){
-  if (geojson == true)
-    geoData.features = []
-  if (xlsx == true)
-    electionData = []
-  console.log("data cleared")
-  console.log(geoData.features)
-  console.log(electionData)
+module.exports = {
+  utils:{
+    ClearData:function (geojson, xlsx){
+    if (geojson == true)
+      geoData.features = []
+    if (xlsx == true)
+      electionData = []
+    console.log("data cleared")
+    console.log(geoData.features)
+    console.log(electionData)
+    }
+  }
 }
 function loadXLSXLocal(filename, callback){
   let reader = new FileReader();
