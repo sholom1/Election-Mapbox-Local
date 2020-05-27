@@ -1,108 +1,13 @@
 const mapboxgl = require("mapbox-gl")
-const jQuery = require("jquery")
 const xlsx = require("xlsx")
-const fs = require("fs")
-var filetxt = document.getElementById("file-text");
 const filePaths = []; 
-var customBtn = document.getElementById("custom-file-button"); 
-var realBtn = document.getElementById("real-file"); 
-var detailsButton = document.getElementById("details-button"); 
-var box = document.getElementById("details-box");
 const geoData = {type:"FeatureCollection", features:[]}
 var electionData = []
 var filesUploaded = parseInt("0")
 
-jQuery(document).ready(function(){
-  mapboxgl.accessToken = 'pk.eyJ1Ijoic2hvbG9tMSIsImEiOiJjazdtNXkxb2UwZXAzM2tvbTlzempjcGV1In0.zAVBsEkEYNpTAfw20fw2GA';
-  filetxt = document.getElementById("file-text")
-  customBtn = document.getElementById("custom-file-button")
-  realBtn = document.getElementById("real-file")
-  detailsButton = document.getElementById("details-button")
-  box = document.getElementById("details-box")
-
-  loadJSONURL('https://sholom1.github.io/Election-Mapbox-Local/Election%20Districts.geojson', addNewJSONObject)
-  loadXLSXURL("https://sholom1.github.io/Election-Mapbox-Local/ElectionData.xlsx", function(sheet){
-    addNewXLSXWorksheet(sheet)
-    ElectionMap.LoadMap();
-  });
-  
-  if (box.style.display == "") box.style.display = "none"
-
-  customBtn.addEventListener("click",function(){
-    realBtn.click();
-  })
-  realBtn.addEventListener("change", function(event){
-    if (event.target.files[0].name.includes(".xlsx")){
-      loadXLSXLocal(event.target.files[0], function(e){
-        console.log(e);
-      })
-    }else if (event.target.files[0].name.includes(".geojson")){
-      loadJSONLocal(event.target.files[0], function(e){
-        //console.log(e);
-        addNewJSONObject(e);
-      })
-    }
-    let box = document.getElementById("details-box")
-    if(box.style.display == "block")
-      ShowFileInfo(true)
-    ElectionMap.LoadMap();
-  })
-  detailsButton.addEventListener("click", function(){
-    detailsButton.classList.toggle("change")
-    ShowFileInfo(false);
-  })
-});
-
-function loadJSONURL(filename, callback) {   
-  var xobj = new XMLHttpRequest();
-  xobj.overrideMimeType("application/json");
-  xobj.open('GET', filename, true); 
-  xobj.onreadystatechange = function () {
-    if (xobj.readyState == 4 && xobj.status == "200") {
-      // Required use of an anonymous callback as .open will NOT return a value but simply returns undefined in asynchronous mode
-      callback(JSON.parse(xobj.responseText));
-    }
-  };
-  xobj.send(null);
-  incrementFileCounter()
-  filePaths.push(filename) 
-}
-
-function loadXLSXURL(filename, callback){
-  let oReq = new XMLHttpRequest();
-  oReq.open("GET", filename, true);
-  oReq.responseType = "arraybuffer";
-
-  oReq.onload = function(e) {
-    let arraybuffer = oReq.response;
-    /* convert data to binary string */
-    let data = new Uint8Array(arraybuffer);
-    let arr = new Array();
-    for(let i = 0; i != data.length; ++i) arr[i] = String.fromCharCode(data[i]);
-    let bstr = arr.join("");
-    /* Call XLSX */
-    let workbook = xlsx.read(bstr, {type:"binary", raw:true})
-    callback(workbook.Sheets[workbook.SheetNames[0]]);
-  }
-  oReq.send(null);
-  incrementFileCounter()
-  filePaths.push(filename)
-}
-
 module.exports = {
-  ClearData:function (geojson, xlsx){
-    if (geojson == true)
-      geoData.features = []
-    if (xlsx == true)
-      electionData = []
-    console.log("data cleared")
-    console.log(geoData.features)
-    console.log(electionData)
-  },
-  IsDistrictInResult:function(district){
-    return districtElectionResults[district] != undefined
-  },
-  LoadMap:function(){
+  //#region Load Map
+  LoadMap:function (){
     var map = mapConstructor();
     //create results object
     var districtElectionResults = {};
@@ -201,33 +106,104 @@ module.exports = {
     function isFeatureInResults(feature){
       return ElectionMap.IsDistrictInResult(feature.properties.elect_dist);
     }
-  }
+  },
+  //#endregion
+  //#region Data Functions
+  //#region Web Data
+  GetResultsXLSX:function (filename, callback){
+    let oReq = new XMLHttpRequest();
+    oReq.open("GET", filename, true);
+    oReq.responseType = "arraybuffer";
   
+    oReq.onload = function(e) {
+      let arraybuffer = oReq.response;
+      /* convert data to binary string */
+      let data = new Uint8Array(arraybuffer);
+      let arr = new Array();
+      for(let i = 0; i != data.length; ++i) arr[i] = String.fromCharCode(data[i]);
+      let bstr = arr.join("");
+      /* Call XLSX */
+      let workbook = xlsx.read(bstr, {type:"binary", raw:true})
+      callback(workbook.Sheets[workbook.SheetNames[0]]);
+    }
+    oReq.send(null);
+    incrementFileCounter()
+    filePaths.push(filename)
+  },
+  GetGeoJSON:function(filename, callback) {   
+    var xobj = new XMLHttpRequest();
+    xobj.overrideMimeType("application/json");
+    xobj.open('GET', filename, true); 
+    xobj.onreadystatechange = function () {
+      if (xobj.readyState == 4 && xobj.status == "200") {
+        // Required use of an anonymous callback as .open will NOT return a value but simply returns undefined in asynchronous mode
+        callback(JSON.parse(xobj.responseText));
+      }
+    };
+    xobj.send(null);
+    incrementFileCounter()
+    filePaths.push(filename) 
+  },
+  //#endregion
+  //#region Local Data
+  loadXLSXLocal:function (filename, callback){
+    let reader = new FileReader();
+    reader.onload = function(){
+      let data = new Uint8Array(reader.result)
+      let arr = new Array();
+      for(let i = 0; i != data.length; ++i) arr[i] = String.fromCharCode(data[i]);
+      let bstr = arr.join("");
+      /* Call XLSX */
+      let workbook = xlsx.read(bstr, {type:"binary", raw:true})
+      callback(workbook.Sheets[workbook.SheetNames[0]]);
+    }
+    reader.readAsArrayBuffer(filename);
+    incrementFileCounter()
+    filePaths.push(filename.name)
+  },
+  loadJSONLocal: function(filename, callback){
+    let reader = new FileReader();
+    reader.onload = function(){
+      callback(JSON.parse(reader.result));
+    }
+    reader.readAsText(filename);
+    incrementFileCounter()
+    filePaths.push(filename.name)
+  },
+  //#endregion
+  addNewJSONObject:function (data){
+    for(feature in data.features){
+      if (data.features[feature].properties.elect_dist == undefined){
+        data.features[feature].properties.elect_dist = 00000
+        geoData.features.push(data.features[feature])
+        continue;
+      }
+      if (!isElectionDistrictInSavedGeoJSON(data.features[feature].properties.elect_dist))
+        geoData.features.push(data.features[feature])
+    }
+    //console.log(data)
+    console.log(geoData);
+  },
+  addNewXLSXWorksheet:function (sheet){
+    electionData.push(sheet);
+  },
+  ClearData:function (geojson, xlsx, reload){
+    if (geojson == true)
+      geoData.features = []
+    if (xlsx == true)
+      electionData = []
+    if (reload == true)
+      ElectionMap.LoadMap(); 
+    console.log("data cleared")
+    console.log(geoData.features)
+    console.log(electionData)
+  },
+  //#endregion
+  IsDistrictInResult:function(district){
+    return districtElectionResults[district] != undefined
+  },
 }
-function loadXLSXLocal(filename, callback){
-  let reader = new FileReader();
-  reader.onload = function(){
-    let data = new Uint8Array(reader.result)
-    let arr = new Array();
-    for(let i = 0; i != data.length; ++i) arr[i] = String.fromCharCode(data[i]);
-    let bstr = arr.join("");
-    /* Call XLSX */
-    let workbook = xlsx.read(bstr, {type:"binary", raw:true})
-    callback(workbook.Sheets[workbook.SheetNames[0]]);
-  }
-  reader.readAsArrayBuffer(filename);
-  incrementFileCounter()
-  filePaths.push(filename.name)
-}
-function loadJSONLocal(filename, callback){
-  let reader = new FileReader();
-  reader.onload = function(){
-    callback(JSON.parse(reader.result));
-  }
-  reader.readAsText(filename);
-  incrementFileCounter()
-  filePaths.push(filename.name)
-}
+
 function getRandomColor() {
   var letters = '0123456789ABCDEF';
   var color = '#';
@@ -255,22 +231,7 @@ function getPartyColor(candidate){
   else
     return "#C0C0C0"
 }
-function addNewJSONObject(data){
-  for(feature in data.features){
-    if (data.features[feature].properties.elect_dist == undefined){
-      data.features[feature].properties.elect_dist = 00000
-      geoData.features.push(data.features[feature])
-      continue;
-    }
-    if (!isElectionDistrictInSavedGeoJSON(data.features[feature].properties.elect_dist))
-      geoData.features.push(data.features[feature])
-  }
-  //console.log(data)
-  console.log(geoData);
-}
-function addNewXLSXWorksheet(sheet){
-  electionData.push(sheet);
-}
+
 function isElectionDistrictInSavedGeoJSON(electionDist){
   for (sFeature in geoData.features){
     if (geoData.features[sFeature].properties.elect_dist == electionDist)
@@ -301,8 +262,7 @@ function ShowFileInfo(visibility){
     box.style.display = "none"
   }
 }
-function collateElectionData()
-{
+function collateElectionData(){
   districtElectionResults = {};
   for(index in electionData){
     let worksheet = electionData[index];
@@ -333,6 +293,7 @@ function collateElectionData()
     return (row + 1).toString();
   }
 }
+
 function mapConstructor(){
   return new mapboxgl.Map({
     container: 'map',
