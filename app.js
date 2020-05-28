@@ -17,8 +17,7 @@ module.exports = {
     var districtElectionResults = {};
     //the callback will run once the map has finished loading
     
-    map.on('load', loadCallback(this, map));
-    function loadCallback(functions, map){
+    map.on('load', function () {
       let districtsInExpression = []
       let colorExpression = ['match', ['get', 'elect_dist']];
       let opacityExpression = ['match', ['get', 'elect_dist']]
@@ -28,7 +27,7 @@ module.exports = {
       console.log(districtElectionResults)
       
       let featuresMissingFromResults = [];
-      geoData.features = geoData.features.filter(functions.isFeatureInResults);
+      geoData.features = geoData.features.filter(ElectionMap.isFeatureInResults);
       for(feature in geoData.features){
         let featureData = geoData.features[feature];
         let color;
@@ -95,7 +94,7 @@ module.exports = {
           'line-width': 2
         }
       });
-    }
+    });
     map.on("mousemove", 'election-district-visualization', function(e){
       if (e.features.length > 0){
         if(e.features[0].properties.results){

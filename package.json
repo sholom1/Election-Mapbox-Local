@@ -5,7 +5,6 @@
   "main": "GitPage.js",
   "dependencies": {
     "common": "^0.2.5",
-    "concurrently": "^5.2.0",
     "jquery": "^3.4.1",
     "mapbox-gl": "^1.8.1",
     "watchify": "^3.11.1",
@@ -15,9 +14,8 @@
     "browserify": "^16.5.1"
   },
   "scripts": {
-    "build": "watchify app.js -s ElectionMap > bundle.js",
-    "watch": "concurrently \"watchify GitPage.js -d -o GitPageBundle.js -v\" \"cmd /k npm run build\""
-
+    "build": "watchify app.js -s ElectionMap -o bundle.js",
+    "watch": "watchify GitPage.js -s ElectionMap -o GitPageBundle.js -v"
   },
   "repository": {
     "type": "git",

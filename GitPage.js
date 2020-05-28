@@ -72,3 +72,4 @@ function ShowFileInfo(visibility){
     box.style.display = "none"
   }
 }
+module.exports = ElectionMap;
