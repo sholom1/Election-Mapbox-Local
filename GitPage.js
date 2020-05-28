@@ -6,20 +6,22 @@ var detailsButton = document.getElementById("details-button");
 var filetxt = document.getElementById("file-text");
 
 jQuery(document).ready(function(){
-    mapboxgl.accessToken = 'pk.eyJ1Ijoic2hvbG9tMSIsImEiOiJjazdtNXkxb2UwZXAzM2tvbTlzempjcGV1In0.zAVBsEkEYNpTAfw20fw2GA';
+    ElectionMap.SetAccessToken('pk.eyJ1Ijoic2hvbG9tMSIsImEiOiJjazdtNXkxb2UwZXAzM2tvbTlzempjcGV1In0.zAVBsEkEYNpTAfw20fw2GA');
     filetxt = document.getElementById("file-text")
     customBtn = document.getElementById("custom-file-button")
     realBtn = document.getElementById("real-file")
     detailsButton = document.getElementById("details-button")
     box = document.getElementById("details-box")
   
-    ElectionMap.GetGeoJSON('https://sholom1.github.io/Election-Mapbox-Local/Election%20Districts.geojson', ElectionMap.addNewJSONObject)
-    ElectionMap.GetResultsXLSX("https://sholom1.github.io/Election-Mapbox-Local/ElectionData.xlsx", 
-        function(sheet){
-            ElectionMap.addNewXLSXWorksheet(sheet)
-            ElectionMap.LoadMap();
-        }
-    );
+    ElectionMap.GetGeoJSON('https://sholom1.github.io/Election-Mapbox-Local/Election%20Districts.geojson', function(GeoJson){
+      ElectionMap.addNewJSONObject(GeoJson);
+      ElectionMap.GetResultsXLSX("https://sholom1.github.io/Election-Mapbox-Local/ElectionData.xlsx", 
+          function(sheet){
+              ElectionMap.addNewXLSXWorksheet(sheet)
+              ElectionMap.LoadMap();
+          }
+      );
+    });
     
     if (box.style.display == "") box.style.display = "none"
   
@@ -47,3 +49,26 @@ jQuery(document).ready(function(){
       ShowFileInfo(false);
     })
   });
+function incrementFileCounter(){
+  if(filetxt == null){ console.log("file counter does not exist"); return;}
+  filesUploaded+=1
+  filetxt.innerHTML = "Files loaded: " + filesUploaded
+}
+function ShowFileInfo(visibility){
+  let list = document.getElementById("file-list");
+  
+  if (box.style.display == "none" || visibility){
+    box.style.display = "block"
+    let iHTML = ""
+    for (fileNameIndex in filePaths){
+      let filename = filePaths[fileNameIndex];
+      if(filename.includes("http"))
+        iHTML += "<li><a href=\"" + filename + "\">" + filename + "</a></li>"
+      else
+        iHTML += "<li><a href=\"" + filename + "\">" + filename + "</a></li>"
+    }
+    list.innerHTML = iHTML
+  }else{
+    box.style.display = "none"
+  }
+}

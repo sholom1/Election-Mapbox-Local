@@ -6,23 +6,29 @@ var electionData = []
 var filesUploaded = parseInt("0")
 
 module.exports = {
+  
   //#region Load Map
+  SetAccessToken: function(token){
+    mapboxgl.accessToken = token;
+  },
   LoadMap:function (){
     var map = mapConstructor();
     //create results object
     var districtElectionResults = {};
     //the callback will run once the map has finished loading
-    map.on('load', function(){
+    
+    map.on('load', loadCallback(this, map));
+    function loadCallback(functions, map){
       let districtsInExpression = []
       let colorExpression = ['match', ['get', 'elect_dist']];
       let opacityExpression = ['match', ['get', 'elect_dist']]
       //Turn the xlsx files into a js object
       districtElectionResults = collateElectionData();
-
+    
       console.log(districtElectionResults)
       
       let featuresMissingFromResults = [];
-      geoData.features = geoData.features.filter(isFeatureInResults);
+      geoData.features = geoData.features.filter(functions.isFeatureInResults);
       for(feature in geoData.features){
         let featureData = geoData.features[feature];
         let color;
@@ -89,7 +95,7 @@ module.exports = {
           'line-width': 2
         }
       });
-    });
+    }
     map.on("mousemove", 'election-district-visualization', function(e){
       if (e.features.length > 0){
         if(e.features[0].properties.results){
@@ -103,9 +109,13 @@ module.exports = {
         }
       }
     })
-    function isFeatureInResults(feature){
-      return ElectionMap.IsDistrictInResult(feature.properties.elect_dist);
-    }
+  },
+  
+  IsDistrictInResult:function (district){
+    return districtElectionResults[district] != undefined
+  },
+  isFeatureInResults:function (feature){
+    return districtElectionResults[feature.properties.elect_dist];
   },
   //#endregion
   //#region Data Functions
@@ -127,7 +137,6 @@ module.exports = {
       callback(workbook.Sheets[workbook.SheetNames[0]]);
     }
     oReq.send(null);
-    incrementFileCounter()
     filePaths.push(filename)
   },
   GetGeoJSON:function(filename, callback) {   
@@ -141,7 +150,6 @@ module.exports = {
       }
     };
     xobj.send(null);
-    incrementFileCounter()
     filePaths.push(filename) 
   },
   //#endregion
@@ -158,7 +166,6 @@ module.exports = {
       callback(workbook.Sheets[workbook.SheetNames[0]]);
     }
     reader.readAsArrayBuffer(filename);
-    incrementFileCounter()
     filePaths.push(filename.name)
   },
   loadJSONLocal: function(filename, callback){
@@ -167,7 +174,6 @@ module.exports = {
       callback(JSON.parse(reader.result));
     }
     reader.readAsText(filename);
-    incrementFileCounter()
     filePaths.push(filename.name)
   },
   //#endregion
@@ -193,15 +199,13 @@ module.exports = {
     if (xlsx == true)
       electionData = []
     if (reload == true)
-      ElectionMap.LoadMap(); 
+      this.LoadMap(); 
     console.log("data cleared")
     console.log(geoData.features)
     console.log(electionData)
   },
   //#endregion
-  IsDistrictInResult:function(district){
-    return districtElectionResults[district] != undefined
-  },
+  
 }
 
 function getRandomColor() {
@@ -239,29 +243,6 @@ function isElectionDistrictInSavedGeoJSON(electionDist){
   }
   return false;
 }
-function incrementFileCounter(){
-  if(filetxt == null){ console.log("file counter does not exist"); return;}
-  filesUploaded+=1
-  filetxt.innerHTML = "Files loaded: " + filesUploaded
-}
-function ShowFileInfo(visibility){
-  let list = document.getElementById("file-list");
-  
-  if (box.style.display == "none" || visibility){
-    box.style.display = "block"
-    let iHTML = ""
-    for (fileNameIndex in filePaths){
-      let filename = filePaths[fileNameIndex];
-      if(filename.includes("http"))
-        iHTML += "<li><a href=\"" + filename + "\">" + filename + "</a></li>"
-      else
-        iHTML += "<li><a href=\"" + filename + "\">" + filename + "</a></li>"
-    }
-    list.innerHTML = iHTML
-  }else{
-    box.style.display = "none"
-  }
-}
 function collateElectionData(){
   districtElectionResults = {};
   for(index in electionData){
@@ -293,7 +274,6 @@ function collateElectionData(){
     return (row + 1).toString();
   }
 }
-
 function mapConstructor(){
   return new mapboxgl.Map({
     container: 'map',

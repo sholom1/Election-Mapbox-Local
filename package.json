@@ -1,0 +1,36 @@
+{
+  "name": "election-mapbox-local",
+  "version": "0.1.0",
+  "description": "Local Election Maps",
+  "main": "GitPage.js",
+  "dependencies": {
+    "common": "^0.2.5",
+    "concurrently": "^5.2.0",
+    "jquery": "^3.4.1",
+    "mapbox-gl": "^1.8.1",
+    "watchify": "^3.11.1",
+    "xlsx": "^0.15.5"
+  },
+  "devDependencies": {
+    "browserify": "^16.5.1"
+  },
+  "scripts": {
+    "build": "watchify app.js -s ElectionMap > bundle.js",
+    "watch": "concurrently \"watchify GitPage.js -d -o GitPageBundle.js -v\" \"cmd /k npm run build\""
+
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/sholom1/Election-Mapbox-Local.git"
+  },
+  "keywords": [
+    "Maps",
+    "Elections"
+  ],
+  "author": "Sam Kessler",
+  "license": "AFPL",
+  "bugs": {
+    "url": "https://github.com/sholom1/Election-Mapbox-Local/issues"
+  },
+  "homepage": "https://github.com/sholom1/Election-Mapbox-Local#readme"
+}
