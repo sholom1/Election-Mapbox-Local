@@ -1,79 +1,90 @@
 (function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.ElectionMap = f()}})(function(){var define,module,exports;return (function(){function r(e,n,t){function o(i,f){if(!n[i]){if(!e[i]){var c="function"==typeof require&&require;if(!f&&c)return c(i,!0);if(u)return u(i,!0);var a=new Error("Cannot find module '"+i+"'");throw a.code="MODULE_NOT_FOUND",a}var p=n[i]={exports:{}};e[i][0].call(p.exports,function(r){var n=e[i][1][r];return o(n||r)},p,p.exports,r,e,n,t)}return n[i].exports}for(var u="function"==typeof require&&require,i=0;i<t.length;i++)o(t[i]);return o}return r})()({1:[function(require,module,exports){
 const ElectionMap = require("./app");
 const jQuery = require("jquery");
-var customBtn = document.getElementById("custom-file-button"); 
-var realBtn = document.getElementById("real-file"); 
+var customBtn = document.getElementById("custom-file-button");
+var realBtn = document.getElementById("real-file");
 var detailsButton = document.getElementById("details-button");
 var filetxt = document.getElementById("file-text");
 
-jQuery(document).ready(function(){
-    ElectionMap.SetAccessToken('pk.eyJ1Ijoic2hvbG9tMSIsImEiOiJjazdtNXkxb2UwZXAzM2tvbTlzempjcGV1In0.zAVBsEkEYNpTAfw20fw2GA');
-    filetxt = document.getElementById("file-text")
-    customBtn = document.getElementById("custom-file-button")
-    realBtn = document.getElementById("real-file")
-    detailsButton = document.getElementById("details-button")
-    box = document.getElementById("details-box")
-  
-    ElectionMap.GetGeoJSON('https://sholom1.github.io/Election-Mapbox-Local/Election%20Districts.geojson', function(GeoJson){
+jQuery(document).ready(function () {
+  ElectionMap.SetAccessToken(
+    "pk.eyJ1Ijoic2hvbG9tMSIsImEiOiJjazdtNXkxb2UwZXAzM2tvbTlzempjcGV1In0.zAVBsEkEYNpTAfw20fw2GA"
+  );
+  ElectionMap.AddAtribution("Data: NYC Board of Elections");
+  ElectionMap.AddAtribution("Shapefile: NYC OpenData");
+
+  filetxt = document.getElementById("file-text");
+  customBtn = document.getElementById("custom-file-button");
+  realBtn = document.getElementById("real-file");
+  detailsButton = document.getElementById("details-button");
+  box = document.getElementById("details-box");
+
+  ElectionMap.GetGeoJSON(
+    "https://sholom1.github.io/Election-Mapbox-Local/Election%20Districts.geojson",
+    function (GeoJson) {
       ElectionMap.addNewJSONObject(GeoJson);
-      ElectionMap.GetResultsXLSX("https://sholom1.github.io/Election-Mapbox-Local/ElectionData.xlsx", 
-          function(sheet){
-              ElectionMap.addNewXLSXWorksheet(sheet)
-              ElectionMap.LoadMap();
-          }
+      ElectionMap.GetResultsXLSX(
+        "https://sholom1.github.io/Election-Mapbox-Local/ElectionData.xlsx",
+        function (sheet) {
+          ElectionMap.addNewXLSXWorksheet(sheet);
+          ElectionMap.LoadMap();
+        }
       );
-    });
-    
-    if (box.style.display == "") box.style.display = "none"
-  
-    customBtn.addEventListener("click",function(){
-      realBtn.click();
-    })
-    realBtn.addEventListener("change", function(event){
-      if (event.target.files[0].name.includes(".xlsx")){
-        ElectionMap.loadXLSXLocal(event.target.files[0], function(e){
-          console.log(e);
-        })
-      }else if (event.target.files[0].name.includes(".geojson")){
-        ElectionMap.loadJSONLocal(event.target.files[0], function(e){
-          //console.log(e);
-          ElectionMap.addNewJSONObject(e);
-        })
-      }
-      let box = document.getElementById("details-box")
-      if(box.style.display == "block")
-        ShowFileInfo(true)
-      ElectionMap.LoadMap();
-    })
-    detailsButton.addEventListener("click", function(){
-      detailsButton.classList.toggle("change")
-      ShowFileInfo(false);
-    })
-  });
-function incrementFileCounter(){
-  if(filetxt == null){ console.log("file counter does not exist"); return;}
-  filesUploaded+=1
-  filetxt.innerHTML = "Files loaded: " + filesUploaded
-}
-function ShowFileInfo(visibility){
-  let list = document.getElementById("file-list");
-  
-  if (box.style.display == "none" || visibility){
-    box.style.display = "block"
-    let iHTML = ""
-    for (fileNameIndex in filePaths){
-      let filename = filePaths[fileNameIndex];
-      if(filename.includes("http"))
-        iHTML += "<li><a href=\"" + filename + "\">" + filename + "</a></li>"
-      else
-        iHTML += "<li><a href=\"" + filename + "\">" + filename + "</a></li>"
     }
-    list.innerHTML = iHTML
-  }else{
-    box.style.display = "none"
+  );
+
+  if (box.style.display == "") box.style.display = "none";
+
+  customBtn.addEventListener("click", function () {
+    realBtn.click();
+  });
+  realBtn.addEventListener("change", function (event) {
+    if (event.target.files[0].name.includes(".xlsx")) {
+      ElectionMap.loadXLSXLocal(event.target.files[0], function (e) {
+        console.log(e);
+      });
+    } else if (event.target.files[0].name.includes(".geojson")) {
+      ElectionMap.loadJSONLocal(event.target.files[0], function (e) {
+        //console.log(e);
+        ElectionMap.addNewJSONObject(e);
+      });
+    }
+    let box = document.getElementById("details-box");
+    if (box.style.display == "block") ShowFileInfo(true);
+    ElectionMap.LoadMap();
+  });
+  detailsButton.addEventListener("click", function () {
+    detailsButton.classList.toggle("change");
+    ShowFileInfo(false);
+  });
+});
+function incrementFileCounter() {
+  if (filetxt == null) {
+    console.log("file counter does not exist");
+    return;
+  }
+  filesUploaded += 1;
+  filetxt.innerHTML = "Files loaded: " + filesUploaded;
+}
+function ShowFileInfo(visibility) {
+  let list = document.getElementById("file-list");
+
+  if (box.style.display == "none" || visibility) {
+    box.style.display = "block";
+    let iHTML = "";
+    for (fileNameIndex in filePaths) {
+      let filename = filePaths[fileNameIndex];
+      if (filename.includes("http"))
+        iHTML += '<li><a href="' + filename + '">' + filename + "</a></li>";
+      else iHTML += '<li><a href="' + filename + '">' + filename + "</a></li>";
+    }
+    list.innerHTML = iHTML;
+  } else {
+    box.style.display = "none";
   }
 }
 module.exports = ElectionMap;
+
 },{"./app":2,"jquery":4}],2:[function(require,module,exports){
 const mapboxgl = require("mapbox-gl");
 const xlsx = require("xlsx");
@@ -81,7 +92,8 @@ const filePaths = [];
 const geoData = { type: "FeatureCollection", features: [] };
 var worksheets = [];
 var filesUploaded = parseInt("0");
-var Credits = ["Data: NYC Board of Elections", "Shapefile: NYC OpenData"];
+var Credits = [];
+var IgnoreThirdPartiesIfMajorParty = false;
 
 module.exports = {
   //#region Load Map
@@ -278,6 +290,9 @@ module.exports = {
     console.log(worksheets);
   },
   //#endregion
+  SetIgnoreThirdParties: function (value) {
+    IgnoreThirdPartiesIfMajorParty = value;
+  },
 };
 
 function getRandomColor() {

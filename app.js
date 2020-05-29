@@ -4,7 +4,8 @@ const filePaths = [];
 const geoData = { type: "FeatureCollection", features: [] };
 var worksheets = [];
 var filesUploaded = parseInt("0");
-var Credits = ["Data: NYC Board of Elections", "Shapefile: NYC OpenData"];
+var Credits = [];
+var IgnoreThirdPartiesIfMajorParty = false;
 
 module.exports = {
   //#region Load Map
@@ -201,6 +202,9 @@ module.exports = {
     console.log(worksheets);
   },
   //#endregion
+  SetIgnoreThirdParties: function (value) {
+    IgnoreThirdPartiesIfMajorParty = value;
+  },
 };
 
 function getRandomColor() {
