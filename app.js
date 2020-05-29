@@ -4,6 +4,7 @@ const filePaths = [];
 const geoData = { type: "FeatureCollection", features: [] };
 var worksheets = [];
 var filesUploaded = parseInt("0");
+var Credits = ["Data: NYC Board of Elections", "Shapefile: NYC OpenData"];
 
 module.exports = {
   //#region Load Map
@@ -63,27 +64,37 @@ module.exports = {
     map.on("mousemove", "election-district-visualization", function (e) {
       if (e.features.length > 0) {
         if (e.features[0].properties.results) {
+          let details = "";
           console.log(e.features[0].properties.results);
-          let details =
-            "<ul><p>Election District: " +
-            e.features[0].properties.elect_dist +
-            "</p>";
-          for (candidate in districtElectionResults[
-            e.features[0].properties.elect_dist
-          ]) {
-            details +=
-              '<li class="ballot-entry"><p class = "ballot-text"><span class = "color-box" ' +
-              'style="background-color: ' +
-              getPartyColor(candidate) +
-              ';"></span>\t' +
-              candidate +
-              ": " +
-              districtElectionResults[e.features[0].properties.elect_dist][
-                candidate
-              ] +
-              "</p></li>";
+          if (
+            districtElectionResults[e.features[0].properties.elect_dist][
+              "Total Votes"
+            ] == 0
+          ) {
+            details += '<p class = "ballot-text">This ED has been combined</p>';
+          } else {
+            details =
+              "<ul><p>Election District: " +
+              e.features[0].properties.elect_dist +
+              "</p>";
+
+            for (candidate in districtElectionResults[
+              e.features[0].properties.elect_dist
+            ]) {
+              details +=
+                '<li class="ballot-entry"><p class = "ballot-text"><span class = "color-box" ' +
+                'style="background-color: ' +
+                getPartyColor(candidate) +
+                ';"></span>\t' +
+                candidate +
+                ": " +
+                districtElectionResults[e.features[0].properties.elect_dist][
+                  candidate
+                ] +
+                "</p></li>";
+            }
+            details += "</ul>";
           }
-          details += "</ul>";
           document.getElementById("Data-Box").innerHTML = details;
         }
       }
@@ -131,6 +142,9 @@ module.exports = {
     };
     xobj.send(null);
     filePaths.push(filename);
+  },
+  AddAtribution: function (credit) {
+    Credits.push(credit);
   },
   //#endregion
   //#region Local Data
@@ -298,7 +312,13 @@ class Map {
           };
         }
       },
-    });
+      attributionControl: false,
+    }).addControl(
+      new mapboxgl.AttributionControl({
+        compact: true,
+        customAttribution: Credits,
+      })
+    );
   }
 }
 class LayerExpressions {
