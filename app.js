@@ -15,60 +15,27 @@ module.exports = {
     var map = mapConstructor();
     //create results object
     var districtElectionResults = {};
+
+    var filter = {
+      IsDistrictInResult:function (district){
+        return districtElectionResults[district] != undefined
+      },
+      isFeatureInResults:function (feature){
+        return districtElectionResults[feature.properties.elect_dist];
+      },
+    }
     //the callback will run once the map has finished loading
-    
     map.on('load', function () {
-      let districtsInExpression = []
-      let colorExpression = ['match', ['get', 'elect_dist']];
-      let opacityExpression = ['match', ['get', 'elect_dist']]
       //Turn the xlsx files into a js object
       districtElectionResults = collateElectionData();
     
       console.log(districtElectionResults)
       
-      let featuresMissingFromResults = [];
-      geoData.features = geoData.features.filter(ElectionMap.isFeatureInResults);
-      for(feature in geoData.features){
-        let featureData = geoData.features[feature];
-        let color;
-        let opacity;
-        //console.log(featureData.properties.elect_dist);
-        if(featureData.properties.elect_dist == undefined){
-          featureData.properties.elect_dist = 00000;
-          continue;
-        }else if(featureData.properties.elect_dist in districtsInExpression){
-          continue;
-        }
-        if (districtElectionResults[featureData.properties.elect_dist] != undefined){
-          districtsInExpression.push(featureData.properties.elect_dist);
-          let prevBallot = {
-            name:"",
-            votes:0
-          }
-          //console.log(districtElectionResults[featureData.properties.elect_dist].toString())
-          for (candidate in districtElectionResults[featureData.properties.elect_dist]){
-            //console.log(districtElectionResults[featureData.properties.elect_dist])
-            if (candidate != "Public Counter" && districtElectionResults[featureData.properties.elect_dist][candidate] > prevBallot.votes){
-              prevBallot.name = candidate
-              prevBallot.votes = districtElectionResults[featureData.properties.elect_dist][candidate]
-            }
-          }
-          color = getPartyColor(prevBallot.name instanceof String ? prevBallot.name : prevBallot.name.toString());
-          opacity = (prevBallot.votes/districtElectionResults[featureData.properties.elect_dist]["Public Counter"])
-          //console.log(opacity);
-          featureData.properties['color'] = color
-          featureData.properties['victory margin'] = opacity
-          featureData.properties['results'] = districtElectionResults[featureData.properties.elect_dist]
-          colorExpression.push(featureData.properties.elect_dist, color);
-          opacityExpression.push(featureData.properties.elect_dist, opacity);
-        }
-        else{
-          geoData.features.splice(feature)
-        }
-      }
+      geoData.features = geoData.features.filter(filter.isFeatureInResults);
+
+      let expressions = new LayerExpressions();
+
       console.log(geoData)
-      colorExpression.push('rgba(0,0,0,0)');
-      opacityExpression.push(.5);
       map.addSource('districts', {
         'type': 'geojson',
         'data': geoData,
@@ -80,8 +47,8 @@ module.exports = {
         'source': 'districts',
         'layout': {},
         'paint': {
-            'fill-color': colorExpression,
-            'fill-opacity': opacityExpression
+            'fill-color': expressions.colorExpression,
+            'fill-opacity': expressions.opacityExpression
           }
       });
       map.addLayer({
@@ -291,3 +258,50 @@ function mapConstructor(){
     }
   });
 }
+class LayerExpressions {
+  constructor() {
+    this.districtsInExpression = [];
+    this.colorExpression = ['match', ['get', 'elect_dist']];
+    this.opacityExpression = ['match', ['get', 'elect_dist']];
+    for (feature in geoData.features) {
+      let featureData = geoData.features[feature];
+      let color;
+      let opacity;
+      //console.log(featureData.properties.elect_dist);
+      if (featureData.properties.elect_dist == undefined) {
+        featureData.properties.elect_dist = 0;
+        continue;
+      }
+      else if (featureData.properties.elect_dist in this.districtsInExpression) {
+        continue;
+      }
+      if (districtElectionResults[featureData.properties.elect_dist] != undefined) {
+        this.districtsInExpression.push(featureData.properties.elect_dist);
+        let prevBallot = {
+          name: "",
+          votes: 0
+        };
+        for (let candidate in districtElectionResults[featureData.properties.elect_dist]) {
+          if (candidate != "Public Counter" && districtElectionResults[featureData.properties.elect_dist][candidate] > prevBallot.votes) {
+            prevBallot.name = candidate;
+            prevBallot.votes = districtElectionResults[featureData.properties.elect_dist][candidate];
+          }
+        }
+        color = getPartyColor(prevBallot.name instanceof String ? prevBallot.name : prevBallot.name.toString());
+        opacity = (prevBallot.votes / districtElectionResults[featureData.properties.elect_dist]["Public Counter"]);
+        //console.log(opacity);
+        featureData.properties['color'] = color;
+        featureData.properties['victory margin'] = opacity;
+        featureData.properties['results'] = districtElectionResults[featureData.properties.elect_dist];
+        this.colorExpression.push(featureData.properties.elect_dist, color);
+        this.opacityExpression.push(featureData.properties.elect_dist, opacity);
+      }
+      else {
+        geoData.features.splice(feature);
+      }
+    }
+    this.colorExpression.push('rgba(0,0,0,0)');
+    this.opacityExpression.push(.5);
+  }
+}
+

@@ -28,7 +28,7 @@ module.exports = {
       console.log(districtElectionResults)
       
       let featuresMissingFromResults = [];
-      geoData.features = geoData.features.filter(ElectionMap.isFeatureInResults);
+      geoData.features = geoData.features.filter(isFeatureInResults);
       for(feature in geoData.features){
         let featureData = geoData.features[feature];
         let color;
