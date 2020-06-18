@@ -121,7 +121,7 @@ module.exports = {
 		oReq.send(null);
 		filePaths.push(filename);
 	},
-	GetGeoJSON: function (filename, callback) {
+	GetJSONURL: function (filename, callback) {
 		var xobj = new XMLHttpRequest();
 		xobj.overrideMimeType('application/json');
 		xobj.open('GET', filename, true);

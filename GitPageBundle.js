@@ -20,15 +20,20 @@ jQuery(document).ready(function () {
 	box = document.getElementById('details-box');
 
 	ElectionMap.SetUseMajorParties(false);
-	ElectionMap.GetGeoJSON('https://sholom1.github.io/Election-Mapbox-Local/Election%20Districts.geojson', function (
+	ElectionMap.GetJSONURL('https://sholom1.github.io/Election-Mapbox-Local/Election%20Districts.geojson', function (
 		GeoJson
 	) {
 		ElectionMap.addNewJSONObject(GeoJson);
-		ElectionMap.GetResultsXLSX('https://sholom1.github.io/Election-Mapbox-Local/ElectionData.xlsx', function (
-			sheet
+		ElectionMap.GetJSONURL('https://sholom1.github.io/Election-Mapbox-Local/Test%20Color%20File.json', function (
+			colordata
 		) {
-			ElectionMap.addNewXLSXWorksheet(sheet);
-			ElectionMap.LoadMap();
+			ElectionMap.SetColorData(colordata);
+			ElectionMap.GetResultsXLSX('https://sholom1.github.io/Election-Mapbox-Local/ElectionData.xlsx', function (
+				sheet
+			) {
+				ElectionMap.addNewXLSXWorksheet(sheet);
+				ElectionMap.LoadMap();
+			});
 		});
 	});
 
@@ -207,7 +212,7 @@ module.exports = {
 		oReq.send(null);
 		filePaths.push(filename);
 	},
-	GetGeoJSON: function (filename, callback) {
+	GetJSONURL: function (filename, callback) {
 		var xobj = new XMLHttpRequest();
 		xobj.overrideMimeType('application/json');
 		xobj.open('GET', filename, true);
