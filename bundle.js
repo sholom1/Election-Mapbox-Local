@@ -7,6 +7,7 @@ var worksheets = [];
 var filesUploaded = parseInt("0");
 var Credits = [];
 var IgnoreThirdPartiesIfMajorParty = false;
+var ColorObject = {};
 
 module.exports = {
   //#region Load Map
@@ -225,10 +226,9 @@ function joinDistrictNumbers(assembly, district) {
 function getPartyColor(candidate) {
   //console.log(candidate)
   if (candidate.includes("Democratic")) return "#0015BC";
-  else if (candidate.includes("Working Families")) return "#800080";
   else if (candidate.includes("Republican")) return "#FF0000";
-  else if (candidate.includes("Reform")) return "#FF4500";
-  else return "#C0C0C0";
+  else if (!IgnoreThirdPartiesIfMajorParty) {
+  } else return "#C0C0C0";
 }
 
 function isElectionDistrictInSavedGeoJSON(electionDist) {
