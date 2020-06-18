@@ -280,6 +280,11 @@ module.exports = {
 	SetColorData: function (data) {
 		ColorObject = data;
 	},
+	SetCandidateColor: function (name, color) {
+		ColorObject[name] = color;
+		this.LoadMap();
+		return ColorObject;
+	},
 	DownloadColorData: function () {
 		downloadObjectAsJson(ColorObject, 'Candidate Color File');
 		return ColorObject;
@@ -491,7 +496,7 @@ class LayerExpressions {
 							color: lerpColor(
 								candidateA.color,
 								candidateB.color,
-								candidateB.votes / (candidateA.votes + candidateB.votes)
+								(candidateB.votes / (candidateA.votes + candidateB.votes)) * 0.5
 							),
 						};
 						console.log(candidateA);
