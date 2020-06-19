@@ -73,31 +73,35 @@ module.exports = {
 					if (districtElectionResults[e.features[0].properties.elect_dist]['Total Votes'] == 0) {
 						details += '<p class = "ballot-text">This ED has been combined</p>';
 					} else {
-						details = '<ul><p>Election District: ' + e.features[0].properties.elect_dist + '</p>';
+						details =
+							'<ul><p>Election District: ' +
+							e.features[0].properties.elect_dist +
+							'</p><p>Total Votes: ' +
+							districtElectionResults[e.features[0].properties.elect_dist]['Total Votes'] +
+							'</p></ul><table><tr><th>Candidate</th><th>Votes</th><th>Percentage</th>';
 
 						for (candidate in districtElectionResults[e.features[0].properties.elect_dist]) {
-							details +=
-								'<li class="ballot-entry"><p class = "ballot-text"><span class = "color-box" ' +
-								'style="background-color: ' +
-								getPartyColor(candidate) +
-								';"></span>\t' +
-								candidate +
-								': ' +
-								districtElectionResults[e.features[0].properties.elect_dist][candidate] +
-								(candidate != 'Total Votes'
-									? '\t' +
-									  Math.round(
-											(districtElectionResults[e.features[0].properties.elect_dist][candidate] /
-												districtElectionResults[e.features[0].properties.elect_dist][
-													'Total Votes'
-												]) *
-												100
-									  ) +
-									  '%'
-									: '');
-							('</p></li>');
+							if (candidate != 'Total Votes') {
+								details +=
+									'<tr><th><p class = "ballot-text"><span class = "color-box" ' +
+									'style="background-color: ' +
+									getPartyColor(candidate) +
+									';"></span>\t' +
+									candidate +
+									': </p></th><th>' +
+									districtElectionResults[e.features[0].properties.elect_dist][candidate] +
+									'</th><th>' +
+									Math.round(
+										(districtElectionResults[e.features[0].properties.elect_dist][candidate] /
+											districtElectionResults[e.features[0].properties.elect_dist][
+												'Total Votes'
+											]) *
+											100
+									) +
+									'%</th></tr>';
+							}
 						}
-						details += '</ul>';
+						details += '</table>';
 					}
 					document.getElementById('Data-Box').innerHTML = details;
 				}
