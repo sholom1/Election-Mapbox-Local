@@ -84,7 +84,18 @@ module.exports = {
 								candidate +
 								': ' +
 								districtElectionResults[e.features[0].properties.elect_dist][candidate] +
-								'</p></li>';
+								(candidate != 'Total Votes'
+									? '\t' +
+									  Math.round(
+											(districtElectionResults[e.features[0].properties.elect_dist][candidate] /
+												districtElectionResults[e.features[0].properties.elect_dist][
+													'Total Votes'
+												]) *
+												100
+									  ) +
+									  '%'
+									: '');
+							('</p></li>');
 						}
 						details += '</ul>';
 					}
@@ -400,13 +411,15 @@ class LayerExpressions {
 						}
 						console.log(candidateA.color);
 						console.log(candidateB.color);
-						console.log(candidateB / (candidateA.votes + candidateB.votes));
+						console.log(
+							candidateB.votes - (candidateA.votes * 0.5) / (candidateA.votes + candidateB.votes)
+						);
 						candidateA = {
 							votes: candidateA.votes + candidateB.votes,
 							color: lerpColor(
 								candidateA.color,
 								candidateB.color,
-								(candidateB.votes - candidateA.votes * 0.5) / (candidateA.votes + candidateB.votes)
+								candidateB.votes / (candidateA.votes + candidateB.votes)
 							),
 						};
 						console.log(candidateA);
