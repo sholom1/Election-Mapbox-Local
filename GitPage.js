@@ -27,12 +27,13 @@ jQuery(document).ready(function () {
 			colordata
 		) {
 			ElectionMap.SetColorData(colordata);
-			ElectionMap.GetResultsXLSX('https://sholom1.github.io/Election-Mapbox-Local/ElectionData.xlsx', function (
-				sheet
-			) {
-				ElectionMap.addNewXLSXWorksheet(sheet);
-				ElectionMap.LoadMap();
-			});
+			ElectionMap.GetResultsXLSX(
+				'http://sholom1.github.io/Election-Mapbox-Local/Polarized%20Election.xlsx',
+				function (sheet) {
+					ElectionMap.addNewXLSXWorksheet(sheet);
+					ElectionMap.LoadMap();
+				}
+			);
 		});
 	});
 

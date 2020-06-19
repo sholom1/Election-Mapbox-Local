@@ -406,7 +406,7 @@ class LayerExpressions {
 							color: lerpColor(
 								candidateA.color,
 								candidateB.color,
-								(candidateB.votes / (candidateA.votes + candidateB.votes)) * 0.5
+								(candidateB.votes - candidateA.votes * 0.5) / (candidateA.votes + candidateB.votes)
 							),
 						};
 						console.log(candidateA);

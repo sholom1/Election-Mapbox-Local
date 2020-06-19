@@ -28,12 +28,13 @@ jQuery(document).ready(function () {
 			colordata
 		) {
 			ElectionMap.SetColorData(colordata);
-			ElectionMap.GetResultsXLSX('https://sholom1.github.io/Election-Mapbox-Local/ElectionData.xlsx', function (
-				sheet
-			) {
-				ElectionMap.addNewXLSXWorksheet(sheet);
-				ElectionMap.LoadMap();
-			});
+			ElectionMap.GetResultsXLSX(
+				'http://sholom1.github.io/Election-Mapbox-Local/Polarized%20Election.xlsx',
+				function (sheet) {
+					ElectionMap.addNewXLSXWorksheet(sheet);
+					ElectionMap.LoadMap();
+				}
+			);
 		});
 	});
 
@@ -496,7 +497,7 @@ class LayerExpressions {
 							color: lerpColor(
 								candidateA.color,
 								candidateB.color,
-								(candidateB.votes / (candidateA.votes + candidateB.votes)) * 0.5
+								(candidateB.votes - candidateA.votes * 0.5) / (candidateA.votes + candidateB.votes)
 							),
 						};
 						console.log(candidateA);
