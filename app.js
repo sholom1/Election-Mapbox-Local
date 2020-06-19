@@ -60,7 +60,7 @@ module.exports = {
 				layout: {},
 				paint: {
 					'line-color': '#000000',
-					'line-width': 2,
+					'line-width': 1,
 				},
 			});
 		});
