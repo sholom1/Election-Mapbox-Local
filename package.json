@@ -1,35 +1,35 @@
 {
-  "name": "election-mapbox-local",
-  "version": "0.1.0",
-  "description": "Local Election Maps",
-  "main": "GitPage.js",
-  "dependencies": {
-    "common": "^0.2.5",
-    "jquery": "^3.4.1",
-    "mapbox-gl": "^1.8.1",
-    "tinyqueue": "^2.0.3",
-    "watchify": "^3.11.1",
-    "xlsx": "^0.15.5"
-  },
-  "devDependencies": {
-    "browserify": "^16.5.1"
-  },
-  "scripts": {
-    "build": "watchify app.js -s ElectionMap -o bundle.js",
-    "watch": "watchify GitPage.js -s ElectionMap -o GitPageBundle.js -v"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/sholom1/Election-Mapbox-Local.git"
-  },
-  "keywords": [
-    "Maps",
-    "Elections"
-  ],
-  "author": "Sam Kessler",
-  "license": "AFPL",
-  "bugs": {
-    "url": "https://github.com/sholom1/Election-Mapbox-Local/issues"
-  },
-  "homepage": "https://github.com/sholom1/Election-Mapbox-Local#readme"
+	"name": "election-mapbox-local",
+	"version": "0.1.0",
+	"description": "Local Election Maps",
+	"main": "GitPage.js",
+	"dependencies": {
+		"common": "^0.2.5",
+		"jquery": "^3.4.1",
+		"mapbox-gl": "^1.8.1",
+		"tinyqueue": "^2.0.3",
+		"watchify": "^3.11.1",
+		"xlsx": "^0.15.5"
+	},
+	"devDependencies": {
+		"browserify": "^16.5.1"
+	},
+	"scripts": {
+		"build": "watchify app.js -s ElectionMap -o bundle.js -v",
+		"watch": "watchify GitPage.js -s ElectionMap -o GitPageBundle.js -v"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/sholom1/Election-Mapbox-Local.git"
+	},
+	"keywords": [
+		"Maps",
+		"Elections"
+	],
+	"author": "Sam Kessler",
+	"license": "AFPL",
+	"bugs": {
+		"url": "https://github.com/sholom1/Election-Mapbox-Local/issues"
+	},
+	"homepage": "https://github.com/sholom1/Election-Mapbox-Local#readme"
 }
