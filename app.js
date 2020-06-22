@@ -12,11 +12,15 @@ var FocusedDistrict = {
 	mousePos: { lng: 0, lat: 0 },
 };
 var Popup = null;
+var style;
 
 module.exports = {
 	//#region Load Map
 	SetAccessToken: function (token) {
 		mapboxgl.accessToken = token;
+	},
+	SetStyle: function (nStyle) {
+		style = nStyle;
 	},
 	LoadMap: function () {
 		var map = new Map();
@@ -410,7 +414,7 @@ class Map {
 			center: [-73.952319, 40.631056],
 			zoom: 9.91,
 			hash: true,
-			style: 'mapbox://styles/sholom1/ck7np8jrn11bo1intt1lh5owr',
+			style: style,
 			transformRequest: (url, resourceType) => {
 				if (resourceType === 'Source' && url.startsWith('http://localhost:8080')) {
 					return {

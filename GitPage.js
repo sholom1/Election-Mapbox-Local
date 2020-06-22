@@ -9,6 +9,7 @@ jQuery(document).ready(function () {
 	ElectionMap.SetAccessToken(
 		'pk.eyJ1Ijoic2hvbG9tMSIsImEiOiJjazdtNXkxb2UwZXAzM2tvbTlzempjcGV1In0.zAVBsEkEYNpTAfw20fw2GA'
 	);
+	ElectionMap.SetStyle('mapbox://styles/sholom1/ck7np8jrn11bo1intt1lh5owr');
 	ElectionMap.AddAtribution('Data: NYC Board of Elections');
 	ElectionMap.AddAtribution('Shapefile: NYC OpenData');
 	ElectionMap.AddAtribution('Election map module: Sam Kessler');
