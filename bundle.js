@@ -7,8 +7,12 @@ const geoData = { type: 'FeatureCollection', features: [] };
 var worksheets = [];
 var filesUploaded = parseInt('0');
 var Credits = [];
-var UseMajorParties = false;
 var ColorObject = {};
+var FocusedDistrict = {
+	elect_dist: 0,
+	mousePos: { lng: 0, lat: 0 },
+};
+var Popup = null;
 
 module.exports = {
 	//#region Load Map
@@ -67,44 +71,78 @@ module.exports = {
 		});
 		map.on('mousemove', 'election-district-visualization', function (e) {
 			if (e.features.length > 0) {
-				if (e.features[0].properties.results) {
-					let details = '';
-					console.log(e.features[0].properties.results);
-					if (districtElectionResults[e.features[0].properties.elect_dist]['Total Votes'] == 0) {
-						details += '<p class = "ballot-text">This ED has been combined</p>';
-					} else {
-						details =
-							'<ul><p>Election District: ' +
-							e.features[0].properties.elect_dist +
-							'</p><p>Total Votes: ' +
-							districtElectionResults[e.features[0].properties.elect_dist]['Total Votes'] +
-							'</p></ul><table><tr><th>Candidate</th><th>Votes</th><th>Percentage</th>';
+				let fProperties = e.features[0].properties;
+				if (fProperties.results) {
+					if (fProperties.elect_dist) {
+						if (fProperties.elect_dist != FocusedDistrict.elect_dist) {
+							FocusedDistrict = { elect_dist: fProperties.elect_dist, mousePos: e.lnglat };
+							console.log(fProperties.results);
+							let details = '';
+							let district = districtElectionResults[fProperties.elect_dist];
+							if (district['Total Votes'] == 0) {
+								details += '<p class = "ballot-text">This ED has been combined</p>';
+							} else {
+								details =
+									'<ul><p>Election District: ' +
+									fProperties.elect_dist +
+									'</p><p>Total Votes: ' +
+									district['Total Votes'] +
+									'</p></ul><table><tr><th>Candidate</th><th>Votes</th><th>Percentage</th>';
 
-						for (candidate in districtElectionResults[e.features[0].properties.elect_dist]) {
-							if (candidate != 'Total Votes') {
-								details +=
-									'<tr><th><p class = "ballot-text"><span class = "color-box" ' +
-									'style="background-color: ' +
-									getPartyColor(candidate) +
-									';"></span>\t' +
-									candidate +
-									': </p></th><th>' +
-									districtElectionResults[e.features[0].properties.elect_dist][candidate] +
-									'</th><th>' +
-									Math.round(
-										(districtElectionResults[e.features[0].properties.elect_dist][candidate] /
-											districtElectionResults[e.features[0].properties.elect_dist][
-												'Total Votes'
-											]) *
-											100
-									) +
-									'%</th></tr>';
+								candidateQueue = new TinyQueue();
+								for (let candidate in district) {
+									if (candidate == 'Total Votes') continue;
+									candidateQueue.push(candidate, district[candidate]);
+								}
+								while (candidateQueue.length) {
+									let candidate = candidateQueue.pop();
+									if (candidate != 'Total Votes') {
+										details +=
+											'<tr><th><p class = "ballot-text"><span class = "color-box" ' +
+											'style="background-color: ' +
+											getPartyColor(candidate) +
+											';"></span>\t' +
+											candidate +
+											': </p></th><th>' +
+											district[candidate] +
+											'</th><th>' +
+											Math.round((district[candidate] / district['Total Votes']) * 100) +
+											'%</th></tr>';
+									}
+								}
+								details += '</table>';
 							}
+							if (module.exports.Popups == true) {
+								if (Popup == null) {
+									console.log('A wild popup has appeared');
+									Popup = new mapboxgl.Popup({
+										closeButton: false,
+										closeOnClick: false,
+										closeOnMove: false,
+										maxWidth: 'none',
+									})
+										.trackPointer()
+										.setHTML(details)
+										.addTo(map);
+								} else {
+									Popup.setHTML(details);
+								}
+								return;
+							} else {
+								document.getElementById('Data-Box').innerHTML = details;
+							}
+						} else {
+							return;
 						}
-						details += '</table>';
 					}
-					document.getElementById('Data-Box').innerHTML = details;
 				}
+			}
+		});
+		map.on('mouseleave', 'election-district-visualization', function (e) {
+			if (Popup) {
+				Popup.remove();
+				Popup = null;
+				FocusedDistrict = { elect_dist: 0, mousePos: e.lnglat };
 			}
 		});
 	},
@@ -215,9 +253,9 @@ module.exports = {
 		return ColorObject;
 	},
 	//#endregion
-	SetUseMajorParties: function (value) {
-		UseMajorParties = value;
-	},
+	UseMajorParties: false,
+	UseGradient: true,
+	Popups: true,
 };
 
 function getRandomColor() {
@@ -236,7 +274,7 @@ function joinDistrictNumbers(assembly, district) {
 }
 function getPartyColor(candidate) {
 	//console.log(candidate)
-	if (UseMajorParties) {
+	if (module.UseMajorParties) {
 		if (candidate.includes('Democratic')) return '#0015BC';
 		else if (candidate.includes('Republican')) return '#FF0000';
 	} else if (candidate != 'Total Votes') {
@@ -276,7 +314,7 @@ class ElectionData {
 				},
 			};
 			for (let row = range.s.r, prefix = {}; row < range.e.r; row++) {
-				let name = UseMajorParties
+				let name = module.UseMajorParties
 					? worksheet['C' + rowIndexAsString(row)].v
 					: worksheet['C' + rowIndexAsString(row)].v.replace(/ *\([^)]*\) */g, '');
 
@@ -386,56 +424,47 @@ class LayerExpressions {
 			} else if (district in this.districtsInExpression) {
 				continue;
 			} else if (districtElectionResults[district] != undefined) {
-				/*
-        this.districtsInExpression.push(district);
-        let prevBallot = {
-          name: '',
-          votes: 0,
-        };
-        for (let candidate in districtElectionResults[district]) {
-          if (candidate == 'Total Votes') continue;
-          else if (districtElectionResults[district][candidate] > prevBallot.votes) {
-            prevBallot.name = candidate;
-            prevBallot.votes = districtElectionResults[district][candidate];
-          }
-        }
-        */
 				if (districtElectionResults[district]['Total Votes'] > 0) {
 					let nameResults = new NameBasedResults(districtElectionResults[district]);
 					let candidateQueue = new TinyQueue();
+					let color;
 					for (let candidate in nameResults.candidates) {
 						candidateQueue.push(nameResults.candidates[candidate], nameResults.candidates[candidate].votes);
 					}
-					let candidateA = undefined;
-					while (candidateQueue.length) {
-						let candidateB = candidateQueue.pop();
-						if (candidateA == undefined) {
-							candidateA = candidateB;
-							continue;
+					if (module.UseGradient) {
+						let candidateA = undefined;
+						while (candidateQueue.length) {
+							let candidateB = candidateQueue.pop();
+							if (candidateA == undefined) {
+								candidateA = candidateB;
+								continue;
+							}
+							console.log(candidateA.color);
+							console.log(candidateB.color);
+							console.log(
+								candidateB.votes - (candidateA.votes * 0.5) / (candidateA.votes + candidateB.votes)
+							);
+							candidateA = {
+								votes: candidateA.votes + candidateB.votes,
+								color: lerpColor(
+									candidateA.color,
+									candidateB.color,
+									candidateB.votes / (candidateA.votes + candidateB.votes)
+								),
+							};
+							console.log(candidateA);
 						}
-						console.log(candidateA.color);
-						console.log(candidateB.color);
-						console.log(
-							candidateB.votes - (candidateA.votes * 0.5) / (candidateA.votes + candidateB.votes)
-						);
-						candidateA = {
-							votes: candidateA.votes + candidateB.votes,
-							color: lerpColor(
-								candidateA.color,
-								candidateB.color,
-								candidateB.votes / (candidateA.votes + candidateB.votes)
-							),
-						};
-						console.log(candidateA);
+						color = candidateA.color;
+					} else {
+						color = nameResults.color;
 					}
-					let color = candidateA.color;
 					opacity = nameResults.highest.votes / districtElectionResults[district]['Total Votes'];
 					//console.log(opacity);
 					featureData.properties['color'] = color;
 					featureData.properties['victory margin'] = opacity;
 					featureData.properties['results'] = districtElectionResults[district];
 					this.colorExpression.push(district, featureData.properties['color']);
-					this.opacityExpression.push(district, featureData.properties['victory margin']);
+					this.opacityExpression.push(district, featureData.properties['victory margin'] * 0.65);
 				} else {
 					featureData.properties['color'] = '#C0C0C0';
 					featureData.properties['victory margin'] = 1;

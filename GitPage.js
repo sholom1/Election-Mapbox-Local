@@ -11,6 +11,8 @@ jQuery(document).ready(function () {
 	);
 	ElectionMap.AddAtribution('Data: NYC Board of Elections');
 	ElectionMap.AddAtribution('Shapefile: NYC OpenData');
+	ElectionMap.AddAtribution('Election map module: Sam Kessler');
+	ElectionMap.Popups = true;
 
 	filetxt = document.getElementById('file-text');
 	customBtn = document.getElementById('custom-file-button');
@@ -18,7 +20,6 @@ jQuery(document).ready(function () {
 	detailsButton = document.getElementById('details-button');
 	box = document.getElementById('details-box');
 
-	ElectionMap.SetUseMajorParties(false);
 	ElectionMap.GetJSONURL('https://sholom1.github.io/Election-Mapbox-Local/Election%20Districts.geojson', function (
 		GeoJson
 	) {
