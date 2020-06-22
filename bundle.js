@@ -380,6 +380,29 @@ function lerpColor(a, b, amount) {
 
 	return '#' + (((1 << 24) + (rr << 16) + (rg << 8) + rb) | 0).toString(16).slice(1);
 }
+function lerpCandidateColors(candidateQueue) {
+	let candidateA = undefined;
+	while (candidateQueue.length) {
+		let candidateB = candidateQueue.pop();
+		if (candidateA == undefined) {
+			candidateA = candidateB;
+			continue;
+		}
+		console.log(candidateA.color);
+		console.log(candidateB.color);
+		console.log(candidateB.votes - (candidateA.votes * 0.5) / (candidateA.votes + candidateB.votes));
+		candidateA = {
+			votes: candidateA.votes + candidateB.votes,
+			color: lerpColor(
+				candidateA.color,
+				candidateB.color,
+				candidateB.votes / (candidateA.votes + candidateB.votes)
+			),
+		};
+		console.log(candidateA);
+	}
+	return candidateA == undefined ? '#C0C0C0' : candidateA.color;
+}
 
 class Map {
 	constructor() {
@@ -426,35 +449,10 @@ class LayerExpressions {
 			} else if (districtElectionResults[district] != undefined) {
 				if (districtElectionResults[district]['Total Votes'] > 0) {
 					let nameResults = new NameBasedResults(districtElectionResults[district]);
-					let candidateQueue = new TinyQueue();
+					let candidateQueue = nameResults.toCandidateQueue();
 					let color;
-					for (let candidate in nameResults.candidates) {
-						candidateQueue.push(nameResults.candidates[candidate], nameResults.candidates[candidate].votes);
-					}
 					if (module.UseGradient) {
-						let candidateA = undefined;
-						while (candidateQueue.length) {
-							let candidateB = candidateQueue.pop();
-							if (candidateA == undefined) {
-								candidateA = candidateB;
-								continue;
-							}
-							console.log(candidateA.color);
-							console.log(candidateB.color);
-							console.log(
-								candidateB.votes - (candidateA.votes * 0.5) / (candidateA.votes + candidateB.votes)
-							);
-							candidateA = {
-								votes: candidateA.votes + candidateB.votes,
-								color: lerpColor(
-									candidateA.color,
-									candidateB.color,
-									candidateB.votes / (candidateA.votes + candidateB.votes)
-								),
-							};
-							console.log(candidateA);
-						}
-						color = candidateA.color;
+						color = lerpCandidateColors(candidateQueue);
 					} else {
 						color = nameResults.color;
 					}
@@ -487,6 +485,7 @@ class NameBasedResults {
 			name: '',
 			votes: 0,
 		};
+		this.isTie = false;
 		for (let candidate in districtResults) {
 			if (candidate == 'Total Votes') continue;
 			let mCandidate = candidate.replace(/ *\([^)]*\) */g, '');
@@ -495,15 +494,28 @@ class NameBasedResults {
 			} else {
 				this.candidates[mCandidate].votes += districtResults[candidate];
 			}
-			if (this.candidates[mCandidate].votes > this.highest.votes) {
-				this.highest.name = mCandidate;
-				this.highest.votes = this.candidates[mCandidate].votes;
+			if (this.candidates[mCandidate].votes == this.highest.votes) this.isTie = this.isTie && true;
+			else {
+				if (this.candidates[mCandidate].votes > this.highest.votes) {
+					this.highest.name = mCandidate;
+					this.highest.votes = this.candidates[mCandidate].votes;
+				}
+				this.isTie = this.isTie && false;
 			}
 		}
 		this.highest.votes = this.candidates[this.highest.name].votes;
-		this.color = getPartyColor(this.highest.name);
+		this.color = this.isTie
+			? lerpCandidateColors(this.toCandidateQueue())
+			: this.candidates[this.highest.name].color;
 	}
 }
+NameBasedResults.prototype.toCandidateQueue = function () {
+	let candidateQueue = new TinyQueue();
+	for (let candidate in this.candidates) {
+		candidateQueue.push(this.candidates[candidate], this.candidates[candidate].votes);
+	}
+	return candidateQueue;
+};
 
 },{"mapbox-gl":3,"tinyqueue":5,"xlsx":8}],2:[function(require,module,exports){
 
