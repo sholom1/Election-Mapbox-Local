@@ -1,1 +1,0 @@
-const ElectionMap = require("../app.js");

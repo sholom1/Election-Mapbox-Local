@@ -448,10 +448,9 @@ class LayerExpressions {
 			} else if (districtElectionResults[district] != undefined) {
 				if (districtElectionResults[district]['Total Votes'] > 0) {
 					let nameResults = new NameBasedResults(districtElectionResults[district]);
-					let candidateQueue = nameResults.toCandidateQueue();
 					let color;
 					if (module.UseGradient) {
-						color = lerpCandidateColors(candidateQueue);
+						color = lerpCandidateColors(nameResults.toCandidateQueue());
 					} else {
 						color = nameResults.color;
 					}

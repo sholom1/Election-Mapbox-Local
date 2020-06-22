@@ -30,7 +30,7 @@ jQuery(document).ready(function () {
 		) {
 			ElectionMap.SetColorData(colordata);
 			ElectionMap.GetResultsXLSX(
-				'https://sholom1.github.io/Election-Mapbox-Local/Polarized%20Election.xlsx',
+				'https://sholom1.github.io/Election-Mapbox-Local/Tied%20Election.xlsx',
 				function (sheet) {
 					ElectionMap.addNewXLSXWorksheet(sheet);
 					ElectionMap.LoadMap();
@@ -541,10 +541,9 @@ class LayerExpressions {
 			} else if (districtElectionResults[district] != undefined) {
 				if (districtElectionResults[district]['Total Votes'] > 0) {
 					let nameResults = new NameBasedResults(districtElectionResults[district]);
-					let candidateQueue = nameResults.toCandidateQueue();
 					let color;
 					if (module.UseGradient) {
-						color = lerpCandidateColors(candidateQueue);
+						color = lerpCandidateColors(nameResults.toCandidateQueue());
 					} else {
 						color = nameResults.color;
 					}
