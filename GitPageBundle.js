@@ -128,13 +128,13 @@ module.exports = {
 		map.on('load', function () {
 			//Turn the xlsx files into a js object
 
-			console.log(districtElectionResults);
+			//console.log(districtElectionResults);
 
 			geoData.features = geoData.features.filter(filter.isFeatureInResults);
 
 			let expressions = new LayerExpressions(districtElectionResults);
 
-			console.log(geoData);
+			//console.log(geoData);
 			map.addSource('districts', {
 				type: 'geojson',
 				data: geoData,
@@ -157,7 +157,7 @@ module.exports = {
 				layout: {},
 				paint: {
 					'line-color': '#000000',
-					'line-width': 1,
+					'line-width': 0.2,
 				},
 			});
 		});
@@ -168,7 +168,7 @@ module.exports = {
 					if (fProperties.elect_dist) {
 						if (fProperties.elect_dist != FocusedDistrict.elect_dist) {
 							FocusedDistrict = { elect_dist: fProperties.elect_dist, mousePos: e.lnglat };
-							console.log(fProperties.results);
+							//console.log(fProperties.results);
 							let details = '';
 							let district = districtElectionResults[fProperties.elect_dist];
 							if (district['Total Votes'] == 0) {
@@ -206,7 +206,7 @@ module.exports = {
 							}
 							if (module.exports.Popups == true) {
 								if (Popup == null) {
-									console.log('A wild popup has appeared');
+									//console.log('A wild popup has appeared');
 									Popup = new mapboxgl.Popup({
 										closeButton: false,
 										closeOnClick: false,
@@ -319,7 +319,7 @@ module.exports = {
 				geoData.features.push(data.features[feature]);
 		}
 		//console.log(data)
-		console.log(geoData);
+		//console.log(geoData);
 	},
 	addNewXLSXWorksheet: function (sheet) {
 		worksheets.push(sheet);
@@ -480,9 +480,9 @@ function lerpCandidateColors(candidateQueue) {
 			candidateA = candidateB;
 			continue;
 		}
-		console.log(candidateA.color);
-		console.log(candidateB.color);
-		console.log(candidateB.votes - (candidateA.votes * 0.5) / (candidateA.votes + candidateB.votes));
+		//console.log(candidateA.color);
+		//console.log(candidateB.color);
+		//console.log(candidateB.votes - (candidateA.votes * 0.5) / (candidateA.votes + candidateB.votes));
 		candidateA = {
 			votes: candidateA.votes + candidateB.votes,
 			color: lerpColor(
@@ -491,7 +491,7 @@ function lerpCandidateColors(candidateQueue) {
 				candidateB.votes / (candidateA.votes + candidateB.votes)
 			),
 		};
-		console.log(candidateA);
+		//console.log(candidateA);
 	}
 	return candidateA == undefined ? '#C0C0C0' : candidateA.color;
 }
@@ -576,7 +576,7 @@ class NameBasedResults {
 			name: '',
 			votes: 0,
 		};
-		this.isTie = false;
+		this.isTie = true;
 		for (let candidate in districtResults) {
 			if (candidate == 'Total Votes') continue;
 			let mCandidate = candidate.replace(/ *\([^)]*\) */g, '');
@@ -585,17 +585,17 @@ class NameBasedResults {
 			} else {
 				this.candidates[mCandidate].votes += districtResults[candidate];
 			}
-			if (this.candidates[mCandidate].votes == this.highest.votes) this.isTie = this.isTie && true;
-			else {
-				if (this.candidates[mCandidate].votes > this.highest.votes) {
-					this.highest.name = mCandidate;
-					this.highest.votes = this.candidates[mCandidate].votes;
-				}
-				this.isTie = this.isTie && false;
+			if (this.candidates[mCandidate].votes > this.highest.votes) {
+				this.highest.name = mCandidate;
+				this.highest.votes = this.candidates[mCandidate].votes;
 			}
 		}
+		for (let candidate in this.candidates) {
+			if (this.candidates[candidate].votes == this.highest.votes) this.isTie = this.isTie && true;
+			else this.isTie = this.isTie && false;
+		}
 		this.highest.votes = this.candidates[this.highest.name].votes;
-		console.log(this.isTie);
+		//console.log(this.isTie);
 		this.color = this.isTie
 			? lerpCandidateColors(this.toCandidateQueue())
 			: this.candidates[this.highest.name].color;
