@@ -503,6 +503,7 @@ class NameBasedResults {
 			}
 		}
 		this.highest.votes = this.candidates[this.highest.name].votes;
+		console.log(this.isTie);
 		this.color = this.isTie
 			? lerpCandidateColors(this.toCandidateQueue())
 			: this.candidates[this.highest.name].color;
