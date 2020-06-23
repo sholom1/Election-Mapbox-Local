@@ -31,7 +31,7 @@ jQuery(document).ready(function () {
 		) {
 			ElectionMap.SetColorData(colordata);
 			ElectionMap.GetResultsXLSX(
-				'https://sholom1.github.io/Election-Mapbox-Local/Citywide%20Election.xlsx',
+				'https://sholom1.github.io/Election-Mapbox-Local/Polarized%20Election.xlsx',
 				function (sheet) {
 					ElectionMap.addNewXLSXWorksheet(sheet);
 					ElectionMap.LoadMap();
@@ -351,7 +351,7 @@ module.exports = {
 		return ColorObject;
 	},
 	SetPartyColor: function (tag, color) {
-		let tagArray = candidate.match(/ *\([^)]*\) */g);
+		let tagArray = tag.match(/ *\([^)]*\) */g);
 		if (tagArray.length) {
 			ColorObject.parties[name] = color;
 		} else if ((name.includes('(') || name.includes(')')) && !(name.includes('(') && name.includes(')'))) {
@@ -363,7 +363,7 @@ module.exports = {
 		return ColorObject;
 	},
 	SetTagColor: function (tag, color) {
-		let tagArray = candidate.match(/ *\([^)]*\) */g);
+		let tagArray = tag.match(/ *\([^)]*\) */g);
 		if (tagArray.length) {
 			ColorObject.exceptionTags[name] = color;
 		} else if ((name.includes('(') || name.includes(')')) && !(name.includes('(') && name.includes(')'))) {

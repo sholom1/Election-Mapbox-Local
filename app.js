@@ -257,7 +257,7 @@ module.exports = {
 		return ColorObject;
 	},
 	SetPartyColor: function (tag, color) {
-		let tagArray = candidate.match(/ *\([^)]*\) */g);
+		let tagArray = tag.match(/ *\([^)]*\) */g);
 		if (tagArray.length) {
 			ColorObject.parties[name] = color;
 		} else if ((name.includes('(') || name.includes(')')) && !(name.includes('(') && name.includes(')'))) {
@@ -269,7 +269,7 @@ module.exports = {
 		return ColorObject;
 	},
 	SetTagColor: function (tag, color) {
-		let tagArray = candidate.match(/ *\([^)]*\) */g);
+		let tagArray = tag.match(/ *\([^)]*\) */g);
 		if (tagArray.length) {
 			ColorObject.exceptionTags[name] = color;
 		} else if ((name.includes('(') || name.includes(')')) && !(name.includes('(') && name.includes(')'))) {
