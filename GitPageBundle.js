@@ -100,7 +100,11 @@ const geoData = { type: 'FeatureCollection', features: [] };
 var worksheets = [];
 var filesUploaded = parseInt('0');
 var Credits = [];
-var ColorObject = {};
+var ColorObject = {
+	candidates: {},
+	parties: {},
+	exceptionTags: {},
+};
 var FocusedDistrict = {
 	elect_dist: 0,
 	mousePos: { lng: 0, lat: 0 },
@@ -341,7 +345,32 @@ module.exports = {
 		ColorObject = data;
 	},
 	SetCandidateColor: function (name, color) {
-		ColorObject[name] = color;
+		ColorObject.candidates[name] = color;
+
+		this.LoadMap();
+		return ColorObject;
+	},
+	SetPartyColor: function (tag, color) {
+		let tagArray = candidate.match(/ *\([^)]*\) */g);
+		if (tagArray.length) {
+			ColorObject.parties[name] = color;
+		} else if ((name.includes('(') || name.includes(')')) && !(name.includes('(') && name.includes(')'))) {
+			throw new Error(
+				'You have formatted the party tag incorrectly please surround the tag in parenthesis or remove the excess ones'
+			);
+		}
+		this.LoadMap();
+		return ColorObject;
+	},
+	SetTagColor: function (tag, color) {
+		let tagArray = candidate.match(/ *\([^)]*\) */g);
+		if (tagArray.length) {
+			ColorObject.exceptionTags[name] = color;
+		} else if ((name.includes('(') || name.includes(')')) && !(name.includes('(') && name.includes(')'))) {
+			throw new Error(
+				'You have formatted the exception tag incorrectly please surround the tag in parenthesis or remove the excess ones'
+			);
+		}
 		this.LoadMap();
 		return ColorObject;
 	},
@@ -351,6 +380,7 @@ module.exports = {
 	},
 	//#endregion
 	UseMajorParties: false,
+	TagException: true,
 	UseGradient: true,
 	Popups: true,
 };
@@ -369,15 +399,38 @@ function joinDistrictNumbers(assembly, district) {
 	}
 	return parseInt(assembly + district);
 }
+/**
+ * Retrieves a color from the color object based on the candidate or tag.
+ * @param {String} candidate
+ * @example
+ * //If UseMajorParties return the democratic tag color
+ *
+ * lerpColor('Bernie Sanders (Democratic)')
+ * @returns {String}
+ */
 function getPartyColor(candidate) {
 	//console.log(candidate)
-	if (module.UseMajorParties) {
-		if (candidate.includes('Democratic')) return '#0015BC';
-		else if (candidate.includes('Republican')) return '#FF0000';
+
+	let tagArray = candidate.match(/ *\([^)]*\) */g);
+	if (module.exports.TagException) {
+		if (tagArray.length) {
+			let color = ColorObject.exceptionTags[tagArray[0]];
+			if (color != undefined) return color;
+		}
+	}
+	if (module.exports.UseMajorParties) {
+		if (tagArray.length) {
+			let color = ColorObject.parties[tagArray[0]];
+			if (color != undefined) {
+				return color;
+				// if (candidate.includes('Democratic')) return '#0015BC';
+				// else if (candidate.includes('Republican')) return '#FF0000';
+			}
+		}
 	} else if (candidate != 'Total Votes') {
 		let mCandidate = candidate.replace(/ *\([^)]*\) */g, '');
-		if (ColorObject[mCandidate] == undefined) ColorObject[mCandidate] = getRandomColor();
-		return ColorObject[mCandidate];
+		if (ColorObject.candidates[mCandidate] == undefined) ColorObject.candidates[mCandidate] = getRandomColor();
+		return ColorObject.candidates[mCandidate];
 	}
 	return '#C0C0C0';
 }
@@ -411,7 +464,7 @@ class ElectionData {
 				},
 			};
 			for (let row = range.s.r, prefix = {}; row < range.e.r; row++) {
-				let name = module.UseMajorParties
+				let name = module.exports.UseMajorParties
 					? worksheet['C' + rowIndexAsString(row)].v
 					: worksheet['C' + rowIndexAsString(row)].v.replace(/ *\([^)]*\) */g, '');
 

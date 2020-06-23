@@ -1,1 +1,10 @@
-{"Rebecca A. Seawright":"#9A8080","Lou Puliafito":"#EAC2B2","Deborah J. Glick":"#1D362B","Cynthia E. Nixon":"#3AA518","Linda B. Rosenthal":"#818333","Yuh-Line Niou":"#D86C3F","Dan Quart":"#5A7D0B","Dr. Jeff Ascherman":"#7BB099","Harvey D. Epstein":"#0ACDBC","Bryan Cooper":"#8B30E1","Juan Pagan":"#42D16C","Robert J. Rodriguez":"#197B07","Daby Carreras":"#C15015","Alfred E. Taylor":"#28BE97","Daniel J. O'Donnell":"#0AFF88","Corina Cotenescu":"#20370C","Inez E. Dickens":"#395352","Carmen N. De La Rosa":"#2113EB","Ronny Goodman":"#E52DB2","Richard N. Gottfried":"#600D8C","Mathylde Frontus":"#0000ff","Ethan Lustig-Elgrably":"#FF0000","Esther Adina Sash":"#FF0000","Margarita Kagan":"#27EB33"}
+{
+  candidates: {"Rebecca A. Seawright":"#9A8080","Lou Puliafito":"#EAC2B2","Deborah J. Glick":"#1D362B","Cynthia E. Nixon":"#3AA518","Linda B. Rosenthal":"#818333","Yuh-Line Niou":"#D86C3F","Dan Quart":"#5A7D0B","Dr. Jeff Ascherman":"#7BB099","Harvey D. Epstein":"#0ACDBC","Bryan Cooper":"#8B30E1","Juan Pagan":"#42D16C","Robert J. Rodriguez":"#197B07","Daby Carreras":"#C15015","Alfred E. Taylor":"#28BE97","Daniel J. O'Donnell":"#0AFF88","Corina Cotenescu":"#20370C","Inez E. Dickens":"#395352","Carmen N. De La Rosa":"#2113EB","Ronny Goodman":"#E52DB2","Richard N. Gottfried":"#600D8C","Mathylde Frontus":"#0000ff","Ethan Lustig-Elgrably":"#FF0000","Esther Adina Sash":"#FF0000","Margarita Kagan":"#27EB33","Alessandra Biaggi":"#16a085","Jeffrey D. Klein":"#ff8000"},
+  parties: {
+    "(Democratic)": "#0015BC",
+    "(Republican)": "#FF0000",
+  },
+  exceptionTags: {
+    "(Write-In)": "#C0C0C0"
+  }
+ }
