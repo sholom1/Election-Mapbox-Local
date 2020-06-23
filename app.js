@@ -595,7 +595,7 @@ NameBasedResults.prototype.toCandidateQueue = function () {
 		if (candidate == 'Total Votes') continue;
 		candidateArray.push({
 			name: candidate,
-			color: this.candidates[candidate.color],
+			color: this.candidates[candidate].color,
 			votes: this.candidates[candidate].votes,
 		});
 	}
