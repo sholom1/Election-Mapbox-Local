@@ -123,6 +123,7 @@ module.exports = {
 	},
 	LoadMap: function () {
 		var map = new Map();
+		if (worksheets.length == 0 && geoData.features.length == 0) return;
 		//create results object
 		var districtElectionResults = new ElectionData();
 
@@ -197,7 +198,7 @@ module.exports = {
 									if (candidate == 'Total Votes') continue;
 									candidateArray.push({ name: candidate, value: district[candidate] });
 								}
-								console.log(candidateArray);
+								//console.log(candidateArray);
 								let candidateQueue = new PriorityQueue(candidateArray, function (a, b) {
 									return b.value - a.value;
 								});
@@ -206,7 +207,7 @@ module.exports = {
 									let candidate = candidateQueue.pop();
 									sortedArray.push({ name: candidate.name, votes: candidate.value });
 								}
-								console.log(candidateQueue.peek());
+								//console.log(candidateQueue.peek());
 								let others = { votes: 0, candidates: {} };
 								while (candidateQueue.length) {
 									let candidate = candidateQueue.pop();
