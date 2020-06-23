@@ -1,7 +1,8 @@
 (function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.ElectionMap = f()}})(function(){var define,module,exports;return (function(){function r(e,n,t){function o(i,f){if(!n[i]){if(!e[i]){var c="function"==typeof require&&require;if(!f&&c)return c(i,!0);if(u)return u(i,!0);var a=new Error("Cannot find module '"+i+"'");throw a.code="MODULE_NOT_FOUND",a}var p=n[i]={exports:{}};e[i][0].call(p.exports,function(r){var n=e[i][1][r];return o(n||r)},p,p.exports,r,e,n,t)}return n[i].exports}for(var u="function"==typeof require&&require,i=0;i<t.length;i++)o(t[i]);return o}return r})()({1:[function(require,module,exports){
 const mapboxgl = require('mapbox-gl');
 const xlsx = require('xlsx');
-const TinyQueue = require('tinyqueue');
+const PriorityQueue = require('tinyqueue');
+const EasyStack = require('js-queue/stack');
 const filePaths = [];
 const geoData = { type: 'FeatureCollection', features: [] };
 var worksheets = [];
@@ -95,28 +96,48 @@ module.exports = {
 									fProperties.elect_dist +
 									'</p><p>Total Votes: ' +
 									district['Total Votes'] +
-									'</p></ul><table><tr><th>Candidate</th><th>Votes</th><th>Percentage</th>';
+									'</p></ul>' +
+									'<div class="map-popup"><table><tr><th>Candidate</th><th>Votes</th><th>Percentage</th>';
 
-								candidateQueue = new TinyQueue();
+								let candidateArray = [];
 								for (let candidate in district) {
 									if (candidate == 'Total Votes') continue;
-									candidateQueue.push(candidate, district[candidate]);
+									candidateArray.push({ name: candidate, value: district[candidate] });
 								}
+								console.log(candidateArray);
+								let candidateQueue = new PriorityQueue(candidateArray, function (a, b) {
+									return b.value - a.value;
+								});
+								let sortedArray = [];
+								for (let i = 0; i < module.exports.MaxCandidates - 1 && candidateQueue.length; i++) {
+									let candidate = candidateQueue.pop();
+									sortedArray.push({ name: candidate.name, votes: candidate.value });
+								}
+								console.log(candidateQueue.peek());
+								let others = { votes: 0, candidates: {} };
 								while (candidateQueue.length) {
 									let candidate = candidateQueue.pop();
-									if (candidate != 'Total Votes') {
-										details +=
-											'<tr><th><p class = "ballot-text"><span class = "color-box" ' +
-											'style="background-color: ' +
-											getPartyColor(candidate) +
-											';"></span>\t' +
-											candidate +
-											': </p></th><th>' +
-											district[candidate] +
-											'</th><th>' +
-											Math.round((district[candidate] / district['Total Votes']) * 100) +
-											'%</th></tr>';
-									}
+									others.votes += candidate.value;
+									others.candidates[candidate] = {
+										candidate: candidate.name,
+										votes: candidate.value,
+									};
+								}
+								if (others.votes > 0) sortedArray.push({ name: 'Others', votes: others.votes });
+								//console.log(sortedArray);
+								for (let i = 0; i < sortedArray.length; i++) {
+									candidate = sortedArray[i];
+									details +=
+										'<tr><th><p class = "ballot-text"><span class = "color-box" ' +
+										'style="background-color: ' +
+										getPartyColor(candidate.name) +
+										';"></span>\t' +
+										candidate.name +
+										': </p></th><th>' +
+										candidate.votes +
+										'</th><th>' +
+										Math.round((candidate.votes / district['Total Votes']) * 100) +
+										'%</th></tr>';
 								}
 								details += '</table>';
 							}
@@ -290,6 +311,7 @@ module.exports = {
 	TagException: true,
 	UseGradient: true,
 	Popups: true,
+	MaxCandidates: 5,
 };
 
 function getRandomColor() {
@@ -319,6 +341,7 @@ function getPartyColor(candidate) {
 	//console.log(candidate)
 
 	let tagArray = candidate.match(/ *\([^)]*\) */g);
+	if (candidate == 'Others') return '#000000';
 	if (module.exports.TagException) {
 		if (tagArray != null && tagArray.length) {
 			let color = ColorObject.exceptionTags[tagArray[0]];
@@ -567,16 +590,70 @@ class NameBasedResults {
 	}
 }
 NameBasedResults.prototype.toCandidateQueue = function () {
-	let candidateQueue = new TinyQueue();
+	let candidateArray = [];
 	for (let candidate in this.candidates) {
-		candidateQueue.push(this.candidates[candidate], this.candidates[candidate].votes);
+		if (candidate == 'Total Votes') continue;
+		candidateArray.push({
+			name: candidate,
+			color: this.candidates[candidate.color],
+			votes: this.candidates[candidate].votes,
+		});
 	}
+	let candidateQueue = new PriorityQueue(candidateArray, function (a, b) {
+		return b.votes - a.votes;
+	});
 	return candidateQueue;
 };
 
-},{"mapbox-gl":3,"tinyqueue":5,"xlsx":8}],2:[function(require,module,exports){
+},{"js-queue/stack":4,"mapbox-gl":5,"tinyqueue":7,"xlsx":10}],2:[function(require,module,exports){
 
 },{}],3:[function(require,module,exports){
+class Stack{
+    constructor(){
+        this.stack=[];
+        this.autoRun=true;
+        this.running=false;
+        this.stop=false;
+    }
+
+    clear(){
+        this.stack=[];
+        return this.stack;
+    }
+
+    contents(val){
+        if(val){
+          this.stack=val;
+        }
+        return this.stack;
+    }
+
+    add(...callbacks){
+        this.stack.push(...callbacks);
+        if(!this.running && !this.stop && this.autoRun){
+            this.next();
+        }
+    }
+
+    next(){
+        this.running=true;
+        if(this.stack.length<1 || this.stop){
+            this.running=false;
+            return;
+        }
+
+        this.stack.pop().bind(this)();
+    }
+}
+
+module.exports=Stack;
+
+},{}],4:[function(require,module,exports){
+const Stack=require('easy-stack');
+
+module.exports = Stack;
+
+},{"easy-stack":3}],5:[function(require,module,exports){
 /* Mapbox GL JS is licensed under the 3-Clause BSD License. Full text of license: https://github.com/mapbox/mapbox-gl-js/blob/v1.8.1/LICENSE.txt */
 (function (global, factory) {
 typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory() :
@@ -618,7 +695,7 @@ return mapboxgl;
 })));
 
 
-},{}],4:[function(require,module,exports){
+},{}],6:[function(require,module,exports){
 // shim for using process in browser
 var process = module.exports = {};
 
@@ -804,7 +881,7 @@ process.chdir = function (dir) {
 };
 process.umask = function() { return 0; };
 
-},{}],5:[function(require,module,exports){
+},{}],7:[function(require,module,exports){
 (function (global, factory) {
 typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory() :
 typeof define === 'function' && define.amd ? define(factory) :
@@ -899,7 +976,7 @@ return TinyQueue;
 
 }));
 
-},{}],6:[function(require,module,exports){
+},{}],8:[function(require,module,exports){
 (function (Buffer){
 /* cpexcel.js (C) 2013-present SheetJS -- http://sheetjs.com */
 /*jshint -W100 */
@@ -2408,7 +2485,7 @@ if (typeof module !== 'undefined' && module.exports && typeof DO_NOT_EXPORT_CODE
 }));
 
 }).call(this,require("buffer").Buffer)
-},{"buffer":2}],7:[function(require,module,exports){
+},{"buffer":2}],9:[function(require,module,exports){
 (function (global,Buffer){
 /*
 
@@ -11411,7 +11488,7 @@ module.exports = ZStream;
 }));
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer)
-},{"buffer":2}],8:[function(require,module,exports){
+},{"buffer":2}],10:[function(require,module,exports){
 (function (process,global,Buffer){
 /*! xlsx.js (C) 2013-present SheetJS -- http://sheetjs.com */
 /* vim: set ts=2: */
@@ -32803,5 +32880,5 @@ else make_xlsx_lib(XLSX);
 var XLS = XLSX, ODS = XLSX;
 
 }).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer)
-},{"./dist/cpexcel.js":6,"./jszip.js":7,"_process":4,"buffer":2,"crypto":2,"fs":2,"stream":2}]},{},[1])(1)
+},{"./dist/cpexcel.js":8,"./jszip.js":9,"_process":6,"buffer":2,"crypto":2,"fs":2,"stream":2}]},{},[1])(1)
 });

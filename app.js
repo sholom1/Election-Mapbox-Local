@@ -1,6 +1,7 @@
 const mapboxgl = require('mapbox-gl');
 const xlsx = require('xlsx');
-const TinyQueue = require('tinyqueue');
+const PriorityQueue = require('tinyqueue');
+const EasyStack = require('js-queue/stack');
 const filePaths = [];
 const geoData = { type: 'FeatureCollection', features: [] };
 var worksheets = [];
@@ -94,28 +95,48 @@ module.exports = {
 									fProperties.elect_dist +
 									'</p><p>Total Votes: ' +
 									district['Total Votes'] +
-									'</p></ul><table><tr><th>Candidate</th><th>Votes</th><th>Percentage</th>';
+									'</p></ul>' +
+									'<div class="map-popup"><table><tr><th>Candidate</th><th>Votes</th><th>Percentage</th>';
 
-								candidateQueue = new TinyQueue();
+								let candidateArray = [];
 								for (let candidate in district) {
 									if (candidate == 'Total Votes') continue;
-									candidateQueue.push(candidate, district[candidate]);
+									candidateArray.push({ name: candidate, value: district[candidate] });
 								}
+								console.log(candidateArray);
+								let candidateQueue = new PriorityQueue(candidateArray, function (a, b) {
+									return b.value - a.value;
+								});
+								let sortedArray = [];
+								for (let i = 0; i < module.exports.MaxCandidates - 1 && candidateQueue.length; i++) {
+									let candidate = candidateQueue.pop();
+									sortedArray.push({ name: candidate.name, votes: candidate.value });
+								}
+								console.log(candidateQueue.peek());
+								let others = { votes: 0, candidates: {} };
 								while (candidateQueue.length) {
 									let candidate = candidateQueue.pop();
-									if (candidate != 'Total Votes') {
-										details +=
-											'<tr><th><p class = "ballot-text"><span class = "color-box" ' +
-											'style="background-color: ' +
-											getPartyColor(candidate) +
-											';"></span>\t' +
-											candidate +
-											': </p></th><th>' +
-											district[candidate] +
-											'</th><th>' +
-											Math.round((district[candidate] / district['Total Votes']) * 100) +
-											'%</th></tr>';
-									}
+									others.votes += candidate.value;
+									others.candidates[candidate] = {
+										candidate: candidate.name,
+										votes: candidate.value,
+									};
+								}
+								if (others.votes > 0) sortedArray.push({ name: 'Others', votes: others.votes });
+								//console.log(sortedArray);
+								for (let i = 0; i < sortedArray.length; i++) {
+									candidate = sortedArray[i];
+									details +=
+										'<tr><th><p class = "ballot-text"><span class = "color-box" ' +
+										'style="background-color: ' +
+										getPartyColor(candidate.name) +
+										';"></span>\t' +
+										candidate.name +
+										': </p></th><th>' +
+										candidate.votes +
+										'</th><th>' +
+										Math.round((candidate.votes / district['Total Votes']) * 100) +
+										'%</th></tr>';
 								}
 								details += '</table>';
 							}
@@ -289,6 +310,7 @@ module.exports = {
 	TagException: true,
 	UseGradient: true,
 	Popups: true,
+	MaxCandidates: 5,
 };
 
 function getRandomColor() {
@@ -318,6 +340,7 @@ function getPartyColor(candidate) {
 	//console.log(candidate)
 
 	let tagArray = candidate.match(/ *\([^)]*\) */g);
+	if (candidate == 'Others') return '#000000';
 	if (module.exports.TagException) {
 		if (tagArray != null && tagArray.length) {
 			let color = ColorObject.exceptionTags[tagArray[0]];
@@ -566,9 +589,17 @@ class NameBasedResults {
 	}
 }
 NameBasedResults.prototype.toCandidateQueue = function () {
-	let candidateQueue = new TinyQueue();
+	let candidateArray = [];
 	for (let candidate in this.candidates) {
-		candidateQueue.push(this.candidates[candidate], this.candidates[candidate].votes);
+		if (candidate == 'Total Votes') continue;
+		candidateArray.push({
+			name: candidate,
+			color: this.candidates[candidate.color],
+			votes: this.candidates[candidate].votes,
+		});
 	}
+	let candidateQueue = new PriorityQueue(candidateArray, function (a, b) {
+		return b.votes - a.votes;
+	});
 	return candidateQueue;
 };

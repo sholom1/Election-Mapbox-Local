@@ -6,6 +6,7 @@
 	"dependencies": {
 		"common": "^0.2.5",
 		"jquery": "^3.4.1",
+		"js-queue": "^2.0.0",
 		"mapbox-gl": "^1.8.1",
 		"tinyqueue": "^2.0.3",
 		"watchify": "^3.11.1",

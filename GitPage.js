@@ -30,7 +30,7 @@ jQuery(document).ready(function () {
 		) {
 			ElectionMap.SetColorData(colordata);
 			ElectionMap.GetResultsXLSX(
-				'https://sholom1.github.io/Election-Mapbox-Local/Polarized%20Election.xlsx',
+				'https://sholom1.github.io/Election-Mapbox-Local/Citywide%20Election.xlsx',
 				function (sheet) {
 					ElectionMap.addNewXLSXWorksheet(sheet);
 					ElectionMap.LoadMap();

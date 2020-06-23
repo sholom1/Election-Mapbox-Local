@@ -1,0 +1,105 @@
+body {
+	margin: 0;
+	padding: 0;
+}
+#map {
+	position: absolute;
+	top: 61px;
+	bottom: 0;
+	width: 100%;
+}
+.databox {
+	height: 30%;
+	width: 25%;
+	position: absolute;
+	bottom: 40px;
+	left: 10px;
+	background-color: rgba(255, 255, 255, 0.9);
+	padding: 15px;
+	text-align: center;
+}
+table,
+th,
+td {
+	text-align: left;
+	border: 1px solid black;
+}
+.details-box {
+	position: absolute;
+	top: 61px;
+	width: 100%;
+	height: calc(100% - 61px);
+	display: none;
+	background-color: white;
+}
+p {
+	font-family: 'Open Sans';
+	margin: 0;
+	font-size: 13px;
+}
+#Data-Box {
+	position: relative;
+}
+.color-box {
+	width: 10px;
+	height: 10px;
+	position: relative;
+	display: inline-block;
+}
+#custom-file-button {
+	padding: 10px;
+	color: white;
+	background-color: green;
+	border: 1px solid black;
+	border-radius: 5px;
+	cursor: pointer;
+}
+#custom-file-button:hover {
+	background-color: #90ee90;
+}
+.ballot-entry {
+	text-align: left;
+}
+#details-button {
+	padding: 10px;
+	color: white;
+	background-color: green;
+	border: 1px solid black;
+	border-radius: 5px;
+	cursor: pointer;
+	position: absolute;
+	right: 0px;
+}
+.bar1,
+.bar2,
+.bar3 {
+	width: 35px;
+	height: 5px;
+	background-color: #333;
+	margin: 6px 0;
+	transition: 0.4s;
+}
+.change .bar1 {
+	-webkit-transform: rotate(-45deg) translate(-9px, 6px);
+	transform: rotate(-45deg) translate(-9px, 6px);
+}
+.change .bar2 {
+	opacity: 0;
+}
+.change .bar3 {
+	-webkit-transform: rotate(45deg) translate(-8px, -8px);
+	transform: rotate(45deg) translate(-8px, -8px);
+}
+.map-popup {
+	width: 100%;
+	top: 10%;
+}
+table {
+	width: 90%;
+	height: 100%;
+	margin: 0 auto;
+	display: flex;
+}
+td {
+	width: 33%;
+}
