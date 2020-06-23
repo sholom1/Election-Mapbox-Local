@@ -413,13 +413,13 @@ function getPartyColor(candidate) {
 
 	let tagArray = candidate.match(/ *\([^)]*\) */g);
 	if (module.exports.TagException) {
-		if (tagArray.length) {
+		if (tagArray != null && tagArray.length) {
 			let color = ColorObject.exceptionTags[tagArray[0]];
 			if (color != undefined) return color;
 		}
 	}
 	if (module.exports.UseMajorParties) {
-		if (tagArray.length) {
+		if (tagArray != null && tagArray.length) {
 			let color = ColorObject.parties[tagArray[0]];
 			if (color != undefined) {
 				return color;
