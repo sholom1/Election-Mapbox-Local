@@ -370,7 +370,7 @@ module.exports = {
 		downloadObjectAsJson(ColorObject, 'Candidate Color File');
 		return ColorObject;
 	},
-	DefaultColors: ['#16a085', '#ff8000', '#C0C0C0', '#99ffd5', '#FA4D57'],
+	DefaultColors: ['#16a085', '#ff8000', '#99ffd5', '#FA4D57'],
 	//#endregion
 	UseMajorParties: false,
 	TagException: true,
