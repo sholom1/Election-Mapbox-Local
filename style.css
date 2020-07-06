@@ -103,3 +103,8 @@ table {
 td {
 	width: 33%;
 }
+#Header {
+	width: 100%;
+	height: 30%;
+	text-align: center;
+}

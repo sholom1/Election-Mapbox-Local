@@ -19,6 +19,7 @@ var FocusedDistrict = {
 };
 var Popup = null;
 var style;
+var dcIndex = 0;
 
 module.exports = {
 	//#region Load Map
@@ -307,6 +308,7 @@ module.exports = {
 		downloadObjectAsJson(ColorObject, 'Candidate Color File');
 		return ColorObject;
 	},
+	DefaultColors: ['#16a085', '#ff8000', '#C0C0C0', '#99ffd5', '#FA4D57'],
 	//#endregion
 	UseMajorParties: false,
 	TagException: true,
@@ -341,8 +343,8 @@ function joinDistrictNumbers(assembly, district) {
 function getPartyColor(candidate) {
 	//console.log(candidate)
 
-	let tagArray = candidate.match(/ *\([^)]*\) */g);
 	if (candidate == 'Others') return '#000000';
+	let tagArray = candidate.match(/ *\([^)]*\) */g);
 	if (module.exports.TagException) {
 		if (tagArray != null && tagArray.length) {
 			let color = ColorObject.exceptionTags[tagArray[0]];
@@ -360,7 +362,14 @@ function getPartyColor(candidate) {
 		}
 	} else if (candidate != 'Total Votes') {
 		let mCandidate = candidate.replace(/ *\([^)]*\) */g, '');
-		if (ColorObject.candidates[mCandidate] == undefined) ColorObject.candidates[mCandidate] = getRandomColor();
+		if (ColorObject.candidates[mCandidate] == undefined) {
+			if (dcIndex < module.exports.DefaultColors.length) {
+				dcIndex++;
+				ColorObject.candidates[mCandidate] = module.exports.DefaultColors[dcIndex];
+			} else {
+				ColorObject.candidates[mCandidate] = getRandomColor();
+			}
+		}
 		return ColorObject.candidates[mCandidate];
 	}
 	return '#C0C0C0';
@@ -389,7 +398,15 @@ class ElectionData {
 			//parse rows & columns
 			let range = xlsx.utils.decode_range(worksheet['!ref']);
 			let nameChanges = {
-				filter: ['Manually Counted Emergency', 'Absentee / Military', 'Federal', 'Affidavit', 'Scattered'],
+				filter: [
+					'Manually Counted Emergency',
+					'Absentee / Military',
+					'Federal',
+					'Affidavit',
+					'Scattered',
+					'Absentee/Military',
+					'Emergency',
+				],
 				conversion: {
 					'Public Counter': 'Total Votes',
 				},

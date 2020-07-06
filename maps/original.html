@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8" />
+        <title>Display a map</title>
+        <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no" />
+        <script src="https://api.mapbox.com/mapbox-gl-js/v1.8.1/mapbox-gl.js"></script>
+        <link href="https://api.mapbox.com/mapbox-gl-js/v1.8.1/mapbox-gl.css" rel="stylesheet" /> 
+        <script src="../GitPageBundle.js"></script> 
+        <link rel="stylesheet" type="text/css" href="../style.css">
+    </head>
+    <body>
+        <input type="file" id="real-file" hidden='hidden'/>
+        <button type="button" id="custom-file-button">Choose a file</button>
+        <span id="file-text">No file chosen</span>
+        <button type="button" id="details-button">
+            <div class="bar1"></div>
+            <div class="bar2"></div>
+            <div class="bar3"></div>
+        </button>
+        <div id="map"></div>
+        <!-- <div class="databox">
+            <P>Election results</P>
+            <div id="Data-Box"></div>
+        </div> -->
+        <div class="details-box" id="details-box">
+            <p>Files</p>
+            <ul id="file-list"></ul>
+            <div class="instructions">
+                <p>File types allowed: *.xlsx, *.geojson</p>
+                <p>Please edit your .xlsx files to look like the following:</p>
+                <img src="https://sholom1.github.io/Election-Mapbox-Local/Images/Election%20Data%20Instructions%20-%201.jpg"></img>
+            </div>
+        </div>
+    </body>
+</html>

@@ -28,7 +28,7 @@ jQuery(document).ready(function () {
 		ElectionMap.GetJSONURL('https://sholom1.github.io/Election-Mapbox-Local/Test%20Color%20File.json', function (
 			colordata
 		) {
-			ElectionMap.SetColorData(colordata);
+			//ElectionMap.SetColorData(colordata);
 			ElectionMap.GetResultsXLSX(
 				'https://sholom1.github.io/Election-Mapbox-Local/Citywide%20Election.xlsx',
 				function (sheet) {
