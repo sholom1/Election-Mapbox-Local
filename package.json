@@ -17,7 +17,8 @@
 	},
 	"scripts": {
 		"build": "watchify app.js -s ElectionMap -o bundle.js -v",
-		"watch": "watchify GitPage.js -s ElectionMap -o GitPageBundle.js -v"
+		"watchG": "watchify GitPage.js -s ElectionMap -o GitPageBundle.js -v",
+		"watchC": "watchify CustomGitPage.js -s ElectionMap -o CustomGitPageBundle.js -v"
 	},
 	"repository": {
 		"type": "git",

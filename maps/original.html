@@ -10,14 +10,9 @@
         <link rel="stylesheet" type="text/css" href="../style.css">
     </head>
     <body>
-        <input type="file" id="real-file" hidden='hidden'/>
-        <button type="button" id="custom-file-button">Choose a file</button>
-        <span id="file-text">No file chosen</span>
-        <button type="button" id="details-button">
-            <div class="bar1"></div>
-            <div class="bar2"></div>
-            <div class="bar3"></div>
-        </button>
+        <form action="../index.html">
+            <input type="submit" value="« Map list" />
+        </form>
         <div id="map"></div>
         <!-- <div class="databox">
             <P>Election results</P>
@@ -32,5 +27,33 @@
                 <img src="https://sholom1.github.io/Election-Mapbox-Local/Images/Election%20Data%20Instructions%20-%201.jpg"></img>
             </div>
         </div>
+        <script>
+            ElectionMap.SetAccessToken(
+                'pk.eyJ1Ijoic2hvbG9tMSIsImEiOiJjazdtNXkxb2UwZXAzM2tvbTlzempjcGV1In0.zAVBsEkEYNpTAfw20fw2GA'
+            );
+            ElectionMap.SetStyle('mapbox://styles/sholom1/ck7np8jrn11bo1intt1lh5owr');
+            ElectionMap.AddAtribution('Data: NYC Board of Elections');
+            ElectionMap.AddAtribution('Shapefile: NYC OpenData');
+            ElectionMap.AddAtribution('Election map module: Sam Kessler');
+            ElectionMap.Popups = true;
+
+            ElectionMap.GetJSONURL('https://sholom1.github.io/Election-Mapbox-Local/Election%20Districts.geojson', function (
+                GeoJson
+            ) {
+                ElectionMap.addNewJSONObject(GeoJson);
+                ElectionMap.GetJSONURL('https://sholom1.github.io/Election-Mapbox-Local/Test%20Color%20File.json', function (
+                    colordata
+                ) {
+                    //ElectionMap.SetColorData(colordata);
+                    ElectionMap.GetResultsXLSX(
+                        'https://sholom1.github.io/Election-Mapbox-Local/Citywide%20Election.xlsx',
+                        function (sheet) {
+                            ElectionMap.addNewXLSXWorksheet(sheet);
+                            ElectionMap.LoadMap();
+                        }
+                    );
+                });
+            });
+        </script>
     </body>
 </html>
