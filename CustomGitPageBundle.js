@@ -209,7 +209,7 @@ module.exports = {
 									details +=
 										'<tr><th><p class = "ballot-text"><span class = "color-box" ' +
 										'style="background-color: ' +
-										getPartyColor(candidate.name) +
+										getCandidateColor(candidate.name) +
 										';"></span>\t' +
 										candidate.name +
 										': </p></th><th>' +
@@ -414,14 +414,15 @@ function joinDistrictNumbers(assembly, district) {
  * @example
  * //If UseMajorParties return the democratic tag color
  *
- * lerpColor('Bernie Sanders (Democratic)')
+ * getCandidateColor('Bernie Sanders (Democratic)')
  * @returns {String}
  */
-function getPartyColor(candidate) {
+function getCandidateColor(candidate) {
 	//console.log(candidate)
 
 	if (candidate == 'Others') return '#000000';
-	let tagArray = candidate.match(/ *\([^)]*\) */g);
+	let tagArray = candidate.match(/\([^)]*\) */);
+	console.log(tagArray);
 	if (module.exports.TagException) {
 		if (tagArray != null && tagArray.length) {
 			let color = ColorObject.exceptionTags[tagArray[0]];
@@ -437,7 +438,8 @@ function getPartyColor(candidate) {
 				// else if (candidate.includes('Republican')) return '#FF0000';
 			}
 		}
-	} else if (candidate != 'Total Votes') {
+	}
+	if (candidate != 'Total Votes') {
 		let mCandidate = candidate.replace(/ *\([^)]*\) */g, '');
 		if (ColorObject.candidates[mCandidate] == undefined) {
 			if (dcIndex < module.exports.DefaultColors.length) {
@@ -665,7 +667,10 @@ class NameBasedResults {
 			if (candidate == 'Total Votes') continue;
 			let mCandidate = candidate.replace(/ *\([^)]*\) */g, '');
 			if (this.candidates[mCandidate] == undefined) {
-				this.candidates[mCandidate] = { votes: districtResults[candidate], color: getPartyColor(mCandidate) };
+				this.candidates[mCandidate] = {
+					votes: districtResults[candidate],
+					color: getCandidateColor(candidate),
+				};
 			} else {
 				this.candidates[mCandidate].votes += districtResults[candidate];
 			}
