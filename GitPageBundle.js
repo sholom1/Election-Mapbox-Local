@@ -468,6 +468,7 @@ class ElectionData {
 					'Scattered',
 					'Absentee/Military',
 					'Emergency',
+					'Special Presidential',
 				],
 				conversion: {
 					'Public Counter': 'Total Votes',
