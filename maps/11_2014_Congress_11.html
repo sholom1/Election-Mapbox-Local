@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no" />
+		<script src="https://api.mapbox.com/mapbox-gl-js/v1.8.1/mapbox-gl.js"></script>
+		<link href="https://api.mapbox.com/mapbox-gl-js/v1.8.1/mapbox-gl.css" rel="stylesheet" />
+		<script src="bundle.js"></script>
+		<style>
+			#map {
+				position: absolute;
+				top: 0px;
+				left: 0px;
+			}
+			table,
+			th,
+			td {
+				text-align: left;
+				border: 1px solid black;
+			}
+			.color-box {
+				width: 10px;
+				height: 10px;
+				position: relative;
+				display: inline-block;
+			}
+		</style>
+	</head>
+	<body>
+		<div id="map" style="height: 100%; width: 100%;"></div>
+
+		<script>
+			ElectionMap.SetAccessToken(
+				'pk.eyJ1IjoibWFydGluc2Ftb3lsb3YiLCJhIjoiY2szdW5mMjA2MGZldTNtcHd0cGVmMm9zayJ9.v_vGRg3qQRYgdDc9YHs23A'
+			);
+			ElectionMap.SetStyle('mapbox://styles/martinsamoylov/ckbrkoszk04op1jp6zjindwcp');
+
+			ElectionMap.AddAtribution('Data: NYC Board of Elections');
+			ElectionMap.AddAtribution('Shapefile: NYC OpenData');
+			ElectionMap.AddAtribution('Map Module: Sam Kessler');
+			ElectionMap.AddAtribution('nycelectionmaps.com');
+
+			ElectionMap.Popups = true;
+			ElectionMap.UseMajorParties = true;
+
+			ElectionMap.GetJSONURL(
+				'https://sholom1.github.io/Election-Mapbox-Local/Election%20Districts.geojson',
+				function (geoData) {
+					ElectionMap.addNewJSONObject(geoData);
+					ElectionMap.GetJSONURL(
+						'https://sholom1.github.io/Election-Mapbox-Local/Test%20Color%20File.json',
+						function (colorData) {
+							ElectionMap.SetColorData(colorData);
+							ElectionMap.GetResultsXLSX(
+								'https://sholom1.github.io/Election-Mapbox-Local/maps/data/11_2014_Congress_11.xlsx',
+								function (electionData) {
+									ElectionMap.addNewXLSXWorksheet(electionData);
+									ElectionMap.LoadMap();
+								}
+							);
+						}
+					);
+				}
+			);
+		</script>
+	</body>
+</html>
