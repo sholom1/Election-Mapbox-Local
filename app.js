@@ -579,7 +579,7 @@ class LayerExpressions {
 					this.colorExpression.push(district, featureData.properties['color']);
 					this.opacityExpression.push(district, featureData.properties['victory margin'] * 0.65);
 				} else {
-					console.log(district);
+					//console.log(district);
 					switch (module.exports.DistrictRenderSettings.ZeroVotes) {
 						case RenderSettingEnum.Discarded:
 							districtsToRemove.push(district);
