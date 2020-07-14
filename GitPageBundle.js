@@ -82,6 +82,20 @@ var FocusedDistrict = {
 var Popup = null;
 var style;
 var dcIndex = 0;
+const ZeroVotesDistrictRenderSettings = {
+	Combined: 'Combined',
+	Discarded: 'Discarded',
+	RandomColor: 'RandomColor',
+};
+const EmptyDistrictRenderSettings = {
+	Combined: 'Combined',
+	Discarded: 'Discarded',
+	RandomColor: 'RandomColor',
+};
+const DistrictRenderSettings = {
+	Empty: EmptyDistrictRenderSettings.Discarded,
+	ZeroVotes: ZeroVotesDistrictRenderSettings.Combined,
+};
 
 module.exports = {
 	//#region Load Map
@@ -111,7 +125,7 @@ module.exports = {
 
 			//console.log(districtElectionResults);
 
-			geoData.features = geoData.features.filter(filter.isFeatureInResults);
+			//geoData.features = geoData.features.filter(filter.isFeatureInResults);
 
 			let expressions = new LayerExpressions(districtElectionResults);
 
@@ -141,6 +155,7 @@ module.exports = {
 					'line-width': 0.2,
 				},
 			});
+			console.log({ districtElectionResults, expressions, geoData });
 		});
 		map.on('mousemove', 'election-district-visualization', function (e) {
 			if (e.features.length > 0) {
@@ -152,7 +167,10 @@ module.exports = {
 							//console.log(fProperties.results);
 							let details = '';
 							let district = districtElectionResults[fProperties.elect_dist];
-							if (district['Total Votes'] == 0) {
+							if (
+								district['Total Votes'] == 0 ||
+								(fProperties.results.isCombined != undefined && fProperties.isCombined == true)
+							) {
 								details += '<p class = "ballot-text">This ED has been combined</p>';
 							} else {
 								details =
@@ -370,13 +388,16 @@ module.exports = {
 		downloadObjectAsJson(ColorObject, 'Candidate Color File');
 		return ColorObject;
 	},
-	DefaultColors: ['#16a085', '#ff8000', '#99ffd5', '#FA4D57'],
+	DefaultColors: ['#16A085', '#ff8000', '#8524d8', '#1877F2', '#FA4D57'],
 	//#endregion
 	UseMajorParties: false,
 	TagException: true,
 	UseGradient: true,
 	Popups: true,
 	MaxCandidates: 5,
+	DistrictRenderSettings: DistrictRenderSettings,
+	ZeroVotesDistrictRenderSettings: ZeroVotesDistrictRenderSettings,
+	EmptyDistrictRenderSettings: EmptyDistrictRenderSettings,
 };
 
 function getRandomColor() {
@@ -407,7 +428,7 @@ function getCandidateColor(candidate) {
 
 	if (candidate == 'Others') return '#000000';
 	let tagArray = candidate.match(/\([^)]*\) */);
-	console.log(tagArray);
+	//console.log(tagArray);
 	if (module.exports.TagException) {
 		if (tagArray != null && tagArray.length) {
 			let color = ColorObject.exceptionTags[tagArray[0]];
@@ -598,6 +619,7 @@ class LayerExpressions {
 		this.districtsInExpression = [];
 		this.colorExpression = ['match', ['get', 'elect_dist']];
 		this.opacityExpression = ['match', ['get', 'elect_dist']];
+		let districtsToRemove = [];
 		for (feature in geoData.features) {
 			let featureData = geoData.features[feature];
 			let district = featureData.properties.elect_dist;
@@ -626,18 +648,54 @@ class LayerExpressions {
 					this.colorExpression.push(district, featureData.properties['color']);
 					this.opacityExpression.push(district, featureData.properties['victory margin'] * 0.65);
 				} else {
-					featureData.properties['color'] = '#C0C0C0';
-					featureData.properties['victory margin'] = 1;
-					featureData.properties['results'] = districtElectionResults[district];
-					this.colorExpression.push(district, featureData.properties['color']);
-					this.opacityExpression.push(district, featureData.properties['victory margin']);
+					console.log(district);
+					switch (module.exports.DistrictRenderSettings.ZeroVotes) {
+						case EmptyDistrictRenderSettings.Discarded:
+							districtsToRemove.push(district);
+							break;
+						case EmptyDistrictRenderSettings.RandomColor:
+							featureData.properties['color'] = getRandomColor();
+							featureData.properties['victory margin'] = 1;
+							featureData.properties['results'] = districtElectionResults[district];
+							this.colorExpression.push(district, featureData.properties['color']);
+							this.opacityExpression.push(district, featureData.properties['victory margin']);
+							break;
+						case EmptyDistrictRenderSettings.Combined:
+							featureData.properties['color'] = '#C0C0C0';
+							featureData.properties['victory margin'] = 1;
+							featureData.properties['results'] = districtElectionResults[district];
+							featureData.properties['results'].isCombined = true;
+							this.colorExpression.push(district, featureData.properties['color']);
+							this.opacityExpression.push(district, featureData.properties['victory margin']);
+							break;
+					}
 				}
 			} else {
-				geoData.features.splice(feature);
+				switch (module.exports.DistrictRenderSettings.Empty) {
+					case EmptyDistrictRenderSettings.Discarded:
+						districtsToRemove.push(district);
+						break;
+					case EmptyDistrictRenderSettings.RandomColor:
+						featureData.properties['color'] = getRandomColor();
+						featureData.properties['victory margin'] = 1;
+						this.colorExpression.push(district, featureData.properties['color']);
+						this.opacityExpression.push(district, featureData.properties['victory margin']);
+						break;
+					case EmptyDistrictRenderSettings.Combined:
+						featureData.properties['color'] = '#C0C0C0';
+						featureData.properties['victory margin'] = 1;
+						featureData.properties['results'].isCombined = true;
+						this.colorExpression.push(district, featureData.properties['color']);
+						this.opacityExpression.push(district, featureData.properties['victory margin']);
+						break;
+				}
 			}
 		}
 		this.colorExpression.push('rgba(0,0,0,0)');
 		this.opacityExpression.push(0.5);
+		geoData.features = geoData.features.filter(function (feature) {
+			return !districtsToRemove.includes(feature.properties.elect_dist);
+		});
 	}
 }
 class NameBasedResults {
