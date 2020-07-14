@@ -97,19 +97,14 @@ var FocusedDistrict = {
 var Popup = null;
 var style;
 var dcIndex = 0;
-const ZeroVotesDistrictRenderSettings = {
-	Combined: 'Combined',
-	Discarded: 'Discarded',
-	RandomColor: 'RandomColor',
-};
-const EmptyDistrictRenderSettings = {
+const RenderSettingEnum = {
 	Combined: 'Combined',
 	Discarded: 'Discarded',
 	RandomColor: 'RandomColor',
 };
 const DistrictRenderSettings = {
-	Empty: EmptyDistrictRenderSettings.Discarded,
-	ZeroVotes: ZeroVotesDistrictRenderSettings.Combined,
+	Empty: RenderSettingEnum.Discarded,
+	ZeroVotes: RenderSettingEnum.Combined,
 };
 
 module.exports = {
@@ -411,8 +406,7 @@ module.exports = {
 	Popups: true,
 	MaxCandidates: 5,
 	DistrictRenderSettings: DistrictRenderSettings,
-	ZeroVotesDistrictRenderSettings: ZeroVotesDistrictRenderSettings,
-	EmptyDistrictRenderSettings: EmptyDistrictRenderSettings,
+	RenderSettingEnum: RenderSettingEnum,
 };
 
 function getRandomColor() {
@@ -665,17 +659,17 @@ class LayerExpressions {
 				} else {
 					console.log(district);
 					switch (module.exports.DistrictRenderSettings.ZeroVotes) {
-						case EmptyDistrictRenderSettings.Discarded:
+						case RenderSettingEnum.Discarded:
 							districtsToRemove.push(district);
 							break;
-						case EmptyDistrictRenderSettings.RandomColor:
+						case RenderSettingEnum.RandomColor:
 							featureData.properties['color'] = getRandomColor();
 							featureData.properties['victory margin'] = 1;
 							featureData.properties['results'] = districtElectionResults[district];
 							this.colorExpression.push(district, featureData.properties['color']);
 							this.opacityExpression.push(district, featureData.properties['victory margin']);
 							break;
-						case EmptyDistrictRenderSettings.Combined:
+						case RenderSettingEnum.Combined:
 							featureData.properties['color'] = '#C0C0C0';
 							featureData.properties['victory margin'] = 1;
 							featureData.properties['results'] = districtElectionResults[district];
@@ -687,16 +681,16 @@ class LayerExpressions {
 				}
 			} else {
 				switch (module.exports.DistrictRenderSettings.Empty) {
-					case EmptyDistrictRenderSettings.Discarded:
+					case RenderSettingEnum.Discarded:
 						districtsToRemove.push(district);
 						break;
-					case EmptyDistrictRenderSettings.RandomColor:
+					case RenderSettingEnum.RandomColor:
 						featureData.properties['color'] = getRandomColor();
 						featureData.properties['victory margin'] = 1;
 						this.colorExpression.push(district, featureData.properties['color']);
 						this.opacityExpression.push(district, featureData.properties['victory margin']);
 						break;
-					case EmptyDistrictRenderSettings.Combined:
+					case RenderSettingEnum.Combined:
 						featureData.properties['color'] = '#C0C0C0';
 						featureData.properties['victory margin'] = 1;
 						featureData.properties['results'].isCombined = true;
