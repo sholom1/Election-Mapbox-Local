@@ -61,15 +61,21 @@ function ShowFileInfo(visibility) {
 module.exports = ElectionMap;
 
 },{"./app":2,"jquery":5}],2:[function(require,module,exports){
+//#region modules
 const mapboxgl = require('mapbox-gl');
 const xlsx = require('xlsx');
 const PriorityQueue = require('tinyqueue');
 const EasyStack = require('js-queue/stack');
+//#endregion
+
 const filePaths = [];
 const geoData = { type: 'FeatureCollection', features: [] };
 var worksheets = [];
-var filesUploaded = parseInt('0');
 var Credits = [];
+var overlayGeoData = { type: 'FeatureCollection', features: [] };
+var overlayFilter = { propertyTag: '', values: [] };
+
+var filesUploaded = parseInt('0');
 var ColorObject = {
 	candidates: {},
 	parties: {},
@@ -150,6 +156,24 @@ module.exports = {
 					'line-width': 0.2,
 				},
 			});
+			if (overlayFilter.values.length && overlayGeoData.features) {
+				map.addSource('overlay', {
+					type: 'geojson',
+					data: overlayGeoData,
+					generateId: true,
+				});
+				map.addLayer({
+					id: 'overlay-ditrict-borders',
+					type: 'line',
+					source: 'overlay',
+					layout: {},
+					paint: {
+						'line-color': '#000000',
+						'line-width': 0.3,
+					},
+				});
+			}
+
 			console.log({ districtElectionResults, expressions, geoData });
 		});
 		map.on('mousemove', 'election-district-visualization', function (e) {
@@ -297,6 +321,17 @@ module.exports = {
 	AddAtribution: function (credit) {
 		Credits.push(credit);
 	},
+	/**
+	 * Set the filter for when loading the Overlay file
+	 * @param {String} key
+	 * @param {Array<Number>} values
+	 *
+	 * @returns {void}
+	 */
+	AddOverlayFilter: function (key, values) {
+		overlayFilter.propertyTag = key;
+		overlayFilter.values = values;
+	},
 	//#endregion
 	//#region Local Data
 	loadXLSXLocal: function (filename, callback) {
@@ -334,6 +369,16 @@ module.exports = {
 		}
 		//console.log(data)
 		//console.log(geoData);
+	},
+	addNewOverlayJSON: function (data) {
+		for (const feature in data.features) {
+			if (overlayFilter.values.includes(data.features[feature].properties[overlayFilter.propertyTag])) {
+				overlayGeoData.features.push(data.features[feature]);
+			}
+		}
+		if (!overlayGeoData.features.length)
+			console.warn('Overlay does not contain any features! Verify the filter was set up correctly.');
+		return overlayGeoData;
 	},
 	addNewXLSXWorksheet: function (sheet) {
 		worksheets.push(sheet);

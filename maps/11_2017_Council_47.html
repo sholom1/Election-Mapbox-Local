@@ -29,19 +29,27 @@
 			ElectionMap.Popups = true;
 			ElectionMap.UseMajorParties = true;
 
+			ElectionMap.AddOverlayFilter('coun_dist', [47]);
+
 			ElectionMap.GetJSONURL(
-				'https://sholom1.github.io/Election-Mapbox-Local/Election%20Districts.geojson',
-				function (geoData) {
-					ElectionMap.addNewJSONObject(geoData);
+				'https://sholom1.github.io/Election-Mapbox-Local/maps/data/City%20Council%20Districts.geojson',
+				function (overlay) {
+					ElectionMap.addNewOverlayJSON(overlay);
 					ElectionMap.GetJSONURL(
-						'https://sholom1.github.io/Election-Mapbox-Local/Test%20Color%20File.json',
-						function (colorData) {
-							ElectionMap.SetColorData(colorData);
-							ElectionMap.GetResultsXLSX(
-								'https://sholom1.github.io/Election-Mapbox-Local/maps/data/11_2014_Congress_11.xlsx',
-								function (electionData) {
-									ElectionMap.addNewXLSXWorksheet(electionData);
-									ElectionMap.LoadMap();
+						'https://sholom1.github.io/Election-Mapbox-Local/Election%20Districts.geojson',
+						function (geoData) {
+							ElectionMap.addNewJSONObject(geoData);
+							ElectionMap.GetJSONURL(
+								'https://sholom1.github.io/Election-Mapbox-Local/Test%20Color%20File.json',
+								function (colorData) {
+									ElectionMap.SetColorData(colorData);
+									ElectionMap.GetResultsXLSX(
+										'https://sholom1.github.io/Election-Mapbox-Local/maps/data/11_2014_Congress_11.xlsx',
+										function (electionData) {
+											ElectionMap.addNewXLSXWorksheet(electionData);
+											ElectionMap.LoadMap();
+										}
+									);
 								}
 							);
 						}

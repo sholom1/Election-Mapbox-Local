@@ -1,13 +1,19 @@
 (function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.ElectionMap = f()}})(function(){var define,module,exports;return (function(){function r(e,n,t){function o(i,f){if(!n[i]){if(!e[i]){var c="function"==typeof require&&require;if(!f&&c)return c(i,!0);if(u)return u(i,!0);var a=new Error("Cannot find module '"+i+"'");throw a.code="MODULE_NOT_FOUND",a}var p=n[i]={exports:{}};e[i][0].call(p.exports,function(r){var n=e[i][1][r];return o(n||r)},p,p.exports,r,e,n,t)}return n[i].exports}for(var u="function"==typeof require&&require,i=0;i<t.length;i++)o(t[i]);return o}return r})()({1:[function(require,module,exports){
+//#region modules
 const mapboxgl = require('mapbox-gl');
 const xlsx = require('xlsx');
 const PriorityQueue = require('tinyqueue');
 const EasyStack = require('js-queue/stack');
+//#endregion
+
 const filePaths = [];
 const geoData = { type: 'FeatureCollection', features: [] };
 var worksheets = [];
-var filesUploaded = parseInt('0');
 var Credits = [];
+var overlayGeoData = { type: 'FeatureCollection', features: [] };
+var overlayFilter = { propertyTag: '', values: [] };
+
+var filesUploaded = parseInt('0');
 var ColorObject = {
 	candidates: {},
 	parties: {},
@@ -88,6 +94,24 @@ module.exports = {
 					'line-width': 0.2,
 				},
 			});
+			if (overlayFilter.values.length && overlayGeoData.features) {
+				map.addSource('overlay', {
+					type: 'geojson',
+					data: overlayGeoData,
+					generateId: true,
+				});
+				map.addLayer({
+					id: 'overlay-ditrict-borders',
+					type: 'line',
+					source: 'overlay',
+					layout: {},
+					paint: {
+						'line-color': '#000000',
+						'line-width': 0.3,
+					},
+				});
+			}
+
 			console.log({ districtElectionResults, expressions, geoData });
 		});
 		map.on('mousemove', 'election-district-visualization', function (e) {
@@ -235,6 +259,17 @@ module.exports = {
 	AddAtribution: function (credit) {
 		Credits.push(credit);
 	},
+	/**
+	 * Set the filter for when loading the Overlay file
+	 * @param {String} key
+	 * @param {Array<Number>} values
+	 *
+	 * @returns {void}
+	 */
+	AddOverlayFilter: function (key, values) {
+		overlayFilter.propertyTag = key;
+		overlayFilter.values = values;
+	},
 	//#endregion
 	//#region Local Data
 	loadXLSXLocal: function (filename, callback) {
@@ -272,6 +307,16 @@ module.exports = {
 		}
 		//console.log(data)
 		//console.log(geoData);
+	},
+	addNewOverlayJSON: function (data) {
+		for (const feature in data.features) {
+			if (overlayFilter.values.includes(data.features[feature].properties[overlayFilter.propertyTag])) {
+				overlayGeoData.features.push(data.features[feature]);
+			}
+		}
+		if (!overlayGeoData.features.length)
+			console.warn('Overlay does not contain any features! Verify the filter was set up correctly.');
+		return overlayGeoData;
 	},
 	addNewXLSXWorksheet: function (sheet) {
 		worksheets.push(sheet);
