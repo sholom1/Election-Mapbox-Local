@@ -29,7 +29,7 @@
 			ElectionMap.Popups = true;
 			ElectionMap.UseMajorParties = true;
 
-			ElectionMap.AddOverlayFilter('coun_dist', [47]);
+			ElectionMap.AddOverlayFilter('coun_dist', ['47']);
 
 			ElectionMap.GetJSONURL(
 				'https://sholom1.github.io/Election-Mapbox-Local/maps/data/City%20Council%20Districts.geojson',
@@ -44,7 +44,7 @@
 								function (colorData) {
 									ElectionMap.SetColorData(colorData);
 									ElectionMap.GetResultsXLSX(
-										'https://sholom1.github.io/Election-Mapbox-Local/maps/data/11_2014_Congress_11.xlsx',
+										'https://sholom1.github.io/Election-Mapbox-Local/maps/data/11_2017_Council_47.xlsx',
 										function (electionData) {
 											ElectionMap.addNewXLSXWorksheet(electionData);
 											ElectionMap.LoadMap();

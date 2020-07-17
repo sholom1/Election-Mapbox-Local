@@ -93,7 +93,7 @@ module.exports = {
 					'line-width': 0.2,
 				},
 			});
-			if (overlayFilter.values.length && overlayGeoData.features) {
+			if (overlayFilter.values.length > 0 && overlayGeoData.features.length > 0) {
 				map.addSource('overlay', {
 					type: 'geojson',
 					data: overlayGeoData,
@@ -106,7 +106,7 @@ module.exports = {
 					layout: {},
 					paint: {
 						'line-color': '#000000',
-						'line-width': 0.3,
+						'line-width': 2,
 					},
 				});
 			}
@@ -308,7 +308,8 @@ module.exports = {
 		//console.log(geoData);
 	},
 	addNewOverlayJSON: function (data) {
-		for (const feature in data.features) {
+		console.log(data);
+		for (feature in data.features) {
 			if (overlayFilter.values.includes(data.features[feature].properties[overlayFilter.propertyTag])) {
 				overlayGeoData.features.push(data.features[feature]);
 			}
