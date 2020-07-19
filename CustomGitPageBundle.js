@@ -112,6 +112,10 @@ const DistrictRenderSettings = {
 	Empty: RenderSettingEnum.Discarded,
 	ZeroVotes: RenderSettingEnum.Combined,
 };
+const DataMode = {
+	Original: 'Original',
+	Unofficial: 'Unofficial',
+};
 
 module.exports = {
 	//#region Load Map
@@ -121,11 +125,12 @@ module.exports = {
 	SetStyle: function (nStyle) {
 		style = nStyle;
 	},
-	LoadMap: function () {
+	LoadMap: function (mode) {
 		var map = new Map();
 		if (worksheets.length == 0 && geoData.features.length == 0) return;
 		//create results object
-		var districtElectionResults = new ElectionData();
+		if (mode == undefined) mode = DataMode.Original;
+		var districtElectionResults = new ElectionData(mode);
 
 		var filter = {
 			IsDistrictInResult: function (district) {
@@ -140,8 +145,6 @@ module.exports = {
 			//Turn the xlsx files into a js object
 
 			//console.log(districtElectionResults);
-
-			//geoData.features = geoData.features.filter(filter.isFeatureInResults);
 
 			let expressions = new LayerExpressions(districtElectionResults);
 
@@ -205,7 +208,8 @@ module.exports = {
 								district['Total Votes'] == 0 ||
 								(fProperties.results.isCombined != undefined && fProperties.isCombined == true)
 							) {
-								details += '<p class = "ballot-text">This ED has been combined</p>';
+								details +=
+									'<p class = "ballot-text">This election district was combined or received zero votes on election day.</p>';
 							} else {
 								details =
 									'<ul><p>Election District: ' +
@@ -463,6 +467,11 @@ function getRandomColor() {
 	}
 	return color;
 }
+/**
+ * @param {String} assembly
+ * @param {String} district
+ * @returns {Number}
+ */
 function joinDistrictNumbers(assembly, district) {
 	while (district.length <= 2) {
 		district = '0' + district;
@@ -532,62 +541,124 @@ function downloadObjectAsJson(exportObj, exportName) {
 }
 
 class ElectionData {
-	constructor() {
-		for (let index in worksheets) {
-			let worksheet = worksheets[index];
-			//parse rows & columns
-			let range = xlsx.utils.decode_range(worksheet['!ref']);
-			let nameChanges = {
-				filter: [
-					'Manually Counted Emergency',
-					'Absentee / Military',
-					'Federal',
-					'Affidavit',
-					'Scattered',
-					'Absentee/Military',
-					'Emergency',
-					'Special Presidential',
-				],
-				conversion: {
-					'Public Counter': 'Total Votes',
-				},
-			};
-			for (let row = range.s.r, prefix = {}; row < range.e.r; row++) {
-				let name = module.exports.UseMajorParties
-					? worksheet['C' + rowIndexAsString(row)].v
-					: worksheet['C' + rowIndexAsString(row)].v.replace(/ *\([^)]*\) */g, '');
-
-				if (prefix.number != worksheet['A' + rowIndexAsString(row)].v) {
-					prefix = {
-						number: worksheet['A' + rowIndexAsString(row)].v,
-						color: getRandomColor(),
+	constructor(mode) {
+		console.log(mode);
+		switch (mode) {
+			case DataMode.Original:
+				this.mode = DataMode.Original;
+				for (let index in worksheets) {
+					let worksheet = worksheets[index];
+					//parse rows & columns
+					let range = xlsx.utils.decode_range(worksheet['!ref']);
+					let nameChanges = {
+						filter: [
+							'Manually Counted Emergency',
+							'Absentee / Military',
+							'Federal',
+							'Affidavit',
+							'Scattered',
+							'Absentee/Military',
+							'Emergency',
+							'Special Presidential',
+						],
+						conversion: {
+							'Public Counter': 'Total Votes',
+						},
 					};
-				}
+					for (let row = range.s.r, prefix = {}; row < range.e.r; row++) {
+						let name = module.exports.UseMajorParties
+							? worksheet['C' + rowIndexAsString(row)].v
+							: worksheet['C' + rowIndexAsString(row)].v.replace(/ *\([^)]*\) */g, '');
 
-				//Check if name is not considered or
-				//if name == "Public Counter" then change in worksheet to "Total Votes"
-				if (nameChanges.filter.includes(worksheet['C' + rowIndexAsString(row)].v)) {
-					continue;
-				} else if (nameChanges.conversion[worksheet['C' + rowIndexAsString(row)].v]) {
-					worksheet['C' + rowIndexAsString(row)].v =
-						nameChanges.conversion[worksheet['C' + rowIndexAsString(row)].v];
-				}
+						if (prefix.number != worksheet['A' + rowIndexAsString(row)].v) {
+							prefix = {
+								number: worksheet['A' + rowIndexAsString(row)].v,
+								color: getRandomColor(),
+							};
+						}
 
-				let districtNumber = joinDistrictNumbers(
-					prefix.number.toString(),
-					worksheet['B' + rowIndexAsString(row)].v.toString()
-				);
-				if (this[districtNumber] == undefined) {
-					this[districtNumber] = {};
+						//Check if name is not considered or
+						//if name == "Public Counter" then change in worksheet to "Total Votes"
+						if (nameChanges.filter.includes(worksheet['C' + rowIndexAsString(row)].v)) {
+							continue;
+						} else if (nameChanges.conversion[worksheet['C' + rowIndexAsString(row)].v]) {
+							worksheet['C' + rowIndexAsString(row)].v =
+								nameChanges.conversion[worksheet['C' + rowIndexAsString(row)].v];
+						}
+
+						let districtNumber = joinDistrictNumbers(
+							prefix.number.toString(),
+							worksheet['B' + rowIndexAsString(row)].v.toString()
+						);
+						if (this[districtNumber] == undefined) {
+							this[districtNumber] = {};
+						}
+						let results = this[districtNumber];
+						if (worksheet['C' + rowIndexAsString(row)].v == 'Total Votes') {
+							results['Total Votes'] = 0;
+						} else {
+							results[worksheet['C' + rowIndexAsString(row)].v] =
+								worksheet['D' + rowIndexAsString(row)].v;
+							results['Total Votes'] += worksheet['D' + rowIndexAsString(row)].v;
+						}
+					}
 				}
-				let results = this[districtNumber];
-				if (worksheet['C' + rowIndexAsString(row)].v == 'Total Votes') {
-					results['Total Votes'] = 0;
-				} else {
-					results[worksheet['C' + rowIndexAsString(row)].v] = worksheet['D' + rowIndexAsString(row)].v;
-					results['Total Votes'] += worksheet['D' + rowIndexAsString(row)].v;
+				break;
+			case DataMode.Unofficial:
+				this.mode = DataMode.Unofficial;
+				for (let index in worksheets) {
+					let worksheet = worksheets[index];
+					//parse rows & columns
+					let range = xlsx.utils.decode_range(worksheet['!ref']);
+					let nameChanges = {
+						filter: [
+							'Manually Counted Emergency',
+							'Absentee / Military',
+							'Federal',
+							'Affidavit',
+							'Scattered',
+							'Absentee/Military',
+							'Emergency',
+							'Special Presidential',
+							'WRITE-IN',
+						],
+						conversion: {
+							'Public Counter': 'Total Votes',
+						},
+					};
+					let parentDistrict = worksheet['A1'].v.match(/([0-9])+/g)[0];
+					console.log(parentDistrict);
+					let candidates = {};
+					for (let column = range.s.c + 2; column < range.e.c; column++) {
+						let name_address = xlsx.utils.encode_cell({ c: column, r: 1 });
+						let name = worksheet[name_address].v.toLowerCase().replace(/\b(\w)/g, (s) => s.toUpperCase());
+						if (module.exports.UseMajorParties) {
+							let tag_address = xlsx.utils.encode_cell({ c: column, r: 2 });
+							name += ' ' + worksheet[tag_address].v;
+						}
+						candidates[name] = column;
+						console.log(name);
+					}
+					console.log(candidates);
+					for (let row = range.s.r + 3, prefix = {}; row < range.e.r; row++) {
+						let head = worksheet[xlsx.utils.encode_cell({ c: 0, r: row })];
+						let resultProperty;
+						if (head.v == 'Total') {
+							resultProperty = 'Total';
+						} else {
+							resultProperty = joinDistrictNumbers(parentDistrict, head.v.match(/([0-9])+/g)[0]);
+						}
+						if (this[resultProperty] == undefined) this[resultProperty] = {};
+						let tally = 0;
+						for (let candidate in candidates) {
+							let votes = worksheet[xlsx.utils.encode_cell({ c: candidates[candidate], r: row })].v;
+							this[resultProperty][candidate] = votes;
+							tally += votes;
+						}
+						this[resultProperty]['Total Votes'] = tally;
+					}
 				}
-			}
+				break;
 		}
 	}
 }
