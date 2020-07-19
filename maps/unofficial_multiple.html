@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8" />
+        <title>Display a map</title>
+        <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no" />
+        <script src="https://api.mapbox.com/mapbox-gl-js/v1.8.1/mapbox-gl.js"></script>
+        <link href="https://api.mapbox.com/mapbox-gl-js/v1.8.1/mapbox-gl.css" rel="stylesheet" /> 
+        <script src="../GitPageBundle.js"></script> 
+        <link rel="stylesheet" type="text/css" href="../style.css">
+    </head>
+    <body>
+        <!-- <input type="file" id="real-file" hidden='hidden'/>
+        <button type="button" id="custom-file-button">Choose a file</button>
+        <span id="file-text">No file chosen</span>
+        <button type="button" id="details-button">
+            <div class="bar1"></div>
+            <div class="bar2"></div>
+            <div class="bar3"></div>
+        </button> -->
+        <form action="../index.html">
+            <input type="submit" value="« Map list" />
+        </form>
+        <div id="map"></div>
+        <!-- <div class="databox">
+            <P>Election results</P>
+            <div id="Data-Box"></div>
+        </div> -->
+        <div class="details-box" id="details-box">
+            <p>Files</p>
+            <ul id="file-list"></ul>
+            <div class="instructions">
+                <p>File types allowed: *.xlsx, *.geojson</p>
+                <p>Please edit your .xlsx files to look like the following:</p>
+                <img src="https://sholom1.github.io/Election-Mapbox-Local/Images/Election%20Data%20Instructions%20-%201.jpg"></img>
+            </div>
+        </div>
+        <script>
+            ElectionMap.SetAccessToken(
+                'pk.eyJ1Ijoic2hvbG9tMSIsImEiOiJjazdtNXkxb2UwZXAzM2tvbTlzempjcGV1In0.zAVBsEkEYNpTAfw20fw2GA'
+            );
+            ElectionMap.SetStyle('mapbox://styles/sholom1/ck7np8jrn11bo1intt1lh5owr');
+            ElectionMap.AddAtribution('Data: NYC Board of Elections');
+            ElectionMap.AddAtribution('Shapefile: NYC OpenData');
+            ElectionMap.AddAtribution('Election map module: Sam Kessler');
+            ElectionMap.Popups = true;
+
+            ElectionMap.GetJSONURL('https://sholom1.github.io/Election-Mapbox-Local/Election%20Districts.geojson', function (
+                GeoJson
+            ) {
+                ElectionMap.addNewJSONObject(GeoJson);
+                ElectionMap.GetJSONURL('https://sholom1.github.io/Election-Mapbox-Local/Test%20Color%20File.json', function (
+                    colordata
+                ) {
+                    ElectionMap.SetColorData(colordata);
+                    //because we are loading multiple xlsx files we place any functions that do not use a worksheet objects inside of a secondary callback function that takes no parameters
+                    ElectionMap.GetResultsXLSX(
+                        ['https://sholom1.github.io/Election-Mapbox-Local/maps/data/AD41_CD9.xlsx','https://sholom1.github.io/Election-Mapbox-Local/maps/data/AD42_Unofficial.xlsx','https://sholom1.github.io/Election-Mapbox-Local/maps/data/AD43_Unofficial.xlsx'],
+                        function (sheet) {
+                            ElectionMap.addNewXLSXWorksheet(sheet);
+                        },
+                        function(){
+                            ElectionMap.LoadMap();
+                        }
+                    );
+                });
+            });
+        </script>
+    </body>
+</html>

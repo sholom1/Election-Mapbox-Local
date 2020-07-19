@@ -227,7 +227,11 @@ module.exports = {
 	//#endregion
 	//#region Data Functions
 	//#region Web Data
-	GetResultsXLSX: function (filename, callback) {
+	GetResultsXLSX: function (filename, callback, secondaryCallBack) {
+		if (Array.isArray(filename)) {
+			for (name in filename) this.GetResultsXLSX(filename[name], callback);
+			return secondaryCallBack();
+		}
 		let oReq = new XMLHttpRequest();
 		oReq.open('GET', filename, true);
 		oReq.responseType = 'arraybuffer';
