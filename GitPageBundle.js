@@ -624,6 +624,7 @@ class ElectionData {
 					console.log(candidates);
 					for (let row = range.s.r + 3, prefix = {}; row < range.e.r; row++) {
 						let head = worksheet[xlsx.utils.encode_cell({ c: 0, r: row })];
+						if (head == undefined) break;
 						let resultProperty;
 						if (head.v == 'Total') {
 							resultProperty = 'Total';
