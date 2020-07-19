@@ -292,8 +292,13 @@ module.exports = {
 	//#region Web Data
 	GetResultsXLSX: function (filename, callback, secondaryCallBack) {
 		if (Array.isArray(filename)) {
-			for (name in filename) this.GetResultsXLSX(filename[name], callback);
-			return secondaryCallBack();
+			return this.GetResultsXLSX(filename.pop(), function (sheet) {
+				callback(sheet);
+				filename.length > 1
+					? module.exports.GetResultsXLSX(filename, callback, secondaryCallBack)
+					: module.exports.GetResultsXLSX(filename.pop(), callback, secondaryCallBack);
+			});
+			//console.log(worksheets);
 		}
 		let oReq = new XMLHttpRequest();
 		oReq.open('GET', filename, true);
@@ -309,6 +314,7 @@ module.exports = {
 			/* Call XLSX */
 			let workbook = xlsx.read(bstr, { type: 'binary', raw: true });
 			callback(workbook.Sheets[workbook.SheetNames[0]]);
+			if (secondaryCallBack != undefined) secondaryCallBack();
 		};
 		oReq.send(null);
 		filePaths.push(filename);
@@ -530,13 +536,14 @@ function downloadObjectAsJson(exportObj, exportName) {
 }
 
 class ElectionData {
-	constructor(mode) {
+	constructor(mode, sheets) {
 		console.log(mode);
+		console.log(worksheets);
 		switch (mode) {
 			case DataMode.Original:
 				this.mode = DataMode.Original;
-				for (let index in worksheets) {
-					let worksheet = worksheets[index];
+				for (let i = 0; i < worksheets.length; i++) {
+					let worksheet = worksheets[i];
 					//parse rows & columns
 					let range = xlsx.utils.decode_range(worksheet['!ref']);
 					let nameChanges = {
@@ -595,26 +602,12 @@ class ElectionData {
 				break;
 			case DataMode.Unofficial:
 				this.mode = DataMode.Unofficial;
-				for (let index in worksheets) {
-					let worksheet = worksheets[index];
+				for (let i = 0; i < worksheets.length; i++) {
+					let worksheet = worksheets[i];
+					console.log(worksheet);
 					//parse rows & columns
 					let range = xlsx.utils.decode_range(worksheet['!ref']);
-					let nameChanges = {
-						filter: [
-							'Manually Counted Emergency',
-							'Absentee / Military',
-							'Federal',
-							'Affidavit',
-							'Scattered',
-							'Absentee/Military',
-							'Emergency',
-							'Special Presidential',
-							'WRITE-IN',
-						],
-						conversion: {
-							'Public Counter': 'Total Votes',
-						},
-					};
+
 					let parentDistrict = worksheet['A1'].v.match(/([0-9])+/g)[0];
 					console.log(parentDistrict);
 					let candidates = {};
