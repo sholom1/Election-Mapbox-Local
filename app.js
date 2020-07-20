@@ -38,7 +38,7 @@ const DataMode = {
 	Original: 'Original',
 	Unofficial: 'Unofficial',
 };
-var ChachedMode;
+var CachedMode;
 
 module.exports = {
 	//#region Load Map
