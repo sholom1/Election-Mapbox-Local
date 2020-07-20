@@ -56,7 +56,7 @@ module.exports = {
 			mode = CachedMode == undefined ? DataMode.Original : CachedMode;
 		} else {
 			CachedMode = mode;
-			console.log(mode);
+			//console.log(mode);
 		}
 
 		var districtElectionResults = new ElectionData(mode);
@@ -329,7 +329,7 @@ module.exports = {
 		//console.log(geoData);
 	},
 	addNewOverlayJSON: function (data) {
-		console.log(data);
+		//console.log(data);
 		for (feature in data.features) {
 			if (overlayFilter.values.includes(data.features[feature].properties[overlayFilter.propertyTag])) {
 				overlayGeoData.features.push(data.features[feature]);
@@ -481,8 +481,8 @@ function downloadObjectAsJson(exportObj, exportName) {
 
 class ElectionData {
 	constructor(mode, sheets) {
-		console.log(mode);
-		console.log(worksheets);
+		//console.log(mode);
+		//console.log(worksheets);
 		switch (mode) {
 			case DataMode.Original:
 				this.mode = DataMode.Original;
@@ -548,12 +548,12 @@ class ElectionData {
 				this.mode = DataMode.Unofficial;
 				for (let i = 0; i < worksheets.length; i++) {
 					let worksheet = worksheets[i];
-					console.log(worksheet);
+					//console.log(worksheet);
 					//parse rows & columns
 					let range = xlsx.utils.decode_range(worksheet['!ref']);
 
 					let parentDistrict = worksheet['A1'].v.match(/([0-9])+/g)[0];
-					console.log(parentDistrict);
+					//console.log(parentDistrict);
 					let candidates = {};
 					for (let column = range.s.c + 2; column < range.e.c; column++) {
 						let name_address = xlsx.utils.encode_cell({ c: column, r: 1 });
@@ -563,9 +563,9 @@ class ElectionData {
 							name += ' ' + worksheet[tag_address].v;
 						}
 						candidates[name] = column;
-						console.log(name);
+						//console.log(name);
 					}
-					console.log(candidates);
+					//console.log(candidates);
 					for (let row = range.s.r + 3, prefix = {}; row < range.e.r; row++) {
 						let head = worksheet[xlsx.utils.encode_cell({ c: 0, r: row })];
 						if (head == undefined) break;
