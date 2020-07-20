@@ -116,6 +116,7 @@ const DataMode = {
 	Original: 'Original',
 	Unofficial: 'Unofficial',
 };
+var ChachedMode;
 
 module.exports = {
 	//#region Load Map
@@ -129,7 +130,13 @@ module.exports = {
 		var map = new Map();
 		if (worksheets.length == 0 && geoData.features.length == 0) return;
 		//create results object
-		if (mode == undefined) mode = DataMode.Original;
+		if (mode == undefined) {
+			mode = CachedMode == undefined ? DataMode.Original : CachedMode;
+		} else {
+			CachedMode = mode;
+			console.log(mode);
+		}
+
 		var districtElectionResults = new ElectionData(mode);
 
 		var filter = {

@@ -52,8 +52,8 @@
                 ElectionMap.GetJSONURL('https://sholom1.github.io/Election-Mapbox-Local/Test%20Color%20File.json', function (
                     colordata
                 ) {
-                    ElectionMap.SetColorData(colordata);
-                    //because we are loading multiple xlsx files we place any functions that do not use a worksheet objects inside of a secondary callback function that takes no parameters
+                    //ElectionMap.SetColorData(colordata);
+                    //because we are loading multiple xlsx files we place any functions that do not use worksheet objects inside of a secondary callback function that takes no parameters
                     ElectionMap.GetResultsXLSX(
                         ['https://sholom1.github.io/Election-Mapbox-Local/maps/data/AD41_CD9.xlsx','https://sholom1.github.io/Election-Mapbox-Local/maps/data/ED42_Unofficial.xlsx','https://sholom1.github.io/Election-Mapbox-Local/maps/data/AD43_Unofficial.xlsx'],
                         function (sheet) {
