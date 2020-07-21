@@ -392,7 +392,7 @@ module.exports = {
 	//#endregion
 	UseMajorParties: false,
 	TagException: true,
-	UseGradient: true,
+	UseGradient: false,
 	Popups: true,
 	MaxCandidates: 5,
 	DistrictRenderSettings: DistrictRenderSettings,
@@ -429,7 +429,10 @@ function joinDistrictNumbers(assembly, district) {
  */
 function getCandidateColor(candidate) {
 	//console.log(candidate)
-
+	if (candidate == undefined)
+		throw new Error(
+			'undefined is not a valid parameter for getCandidateColor(candidate:), the expected type is of type string in a name format.'
+		);
 	if (candidate == 'Others') return '#000000';
 	let tagArray = candidate.match(/\([^)]*\) */);
 	//console.log(tagArray);
@@ -453,8 +456,8 @@ function getCandidateColor(candidate) {
 		let mCandidate = candidate.replace(/ *\([^)]*\) */g, '');
 		if (ColorObject.candidates[mCandidate] == undefined) {
 			if (dcIndex < module.exports.DefaultColors.length) {
-				dcIndex++;
 				ColorObject.candidates[mCandidate] = module.exports.DefaultColors[dcIndex];
+				dcIndex++;
 			} else {
 				ColorObject.candidates[mCandidate] = getRandomColor();
 			}
@@ -689,7 +692,7 @@ class LayerExpressions {
 				if (districtElectionResults[district]['Total Votes'] > 0) {
 					let nameResults = new NameBasedResults(districtElectionResults[district]);
 					let color;
-					if (module.UseGradient) {
+					if (module.exports.UseGradient) {
 						color = lerpCandidateColors(nameResults.toCandidateQueue());
 					} else {
 						color = nameResults.color;
