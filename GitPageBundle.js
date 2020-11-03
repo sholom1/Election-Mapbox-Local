@@ -6,11 +6,7 @@ var realBtn = document.getElementById('real-file');
 var detailsButton = document.getElementById('details-button');
 var filetxt = document.getElementById('file-text');
 
-jQuery(document).ready(function () {
-	
-
-	if (box.style.display == '') box.style.display = 'none';
-
+jQuery(function () {
 	customBtn.addEventListener('click', function () {
 		realBtn.click();
 	});
@@ -66,6 +62,7 @@ const mapboxgl = require('mapbox-gl');
 const xlsx = require('xlsx');
 const PriorityQueue = require('tinyqueue');
 const EasyStack = require('js-queue/stack');
+const { param } = require('jquery');
 //#endregion
 
 const filePaths = [];
@@ -74,6 +71,7 @@ var worksheets = [];
 var Credits = [];
 var overlayGeoData = { type: 'FeatureCollection', features: [] };
 var overlayFilter = { propertyTag: '', values: [] };
+var districtElectionResults;
 
 var filesUploaded = parseInt('0');
 var ColorObject = {
@@ -122,7 +120,7 @@ module.exports = {
 			//console.log(mode);
 		}
 
-		var districtElectionResults = new ElectionData(mode);
+		districtElectionResults = new ElectionData(mode);
 
 		var filter = {
 			IsDistrictInResult: function (district) {
@@ -450,6 +448,12 @@ module.exports = {
 		downloadObjectAsJson(ColorObject, 'Candidate Color File');
 		return ColorObject;
 	},
+	PrintSummary: function () {
+		let total = new TotalElectionCount(districtElectionResults);
+		console.log(total);
+		console.log(total.toCandidateQueue());
+		return total.toString();
+	},
 	DefaultColors: ['#16A085', '#ff8000', '#8524d8', '#1877F2', '#FA4D57'],
 	//#endregion
 	UseMajorParties: false,
@@ -544,117 +548,6 @@ function downloadObjectAsJson(exportObj, exportName) {
 	downloadAnchorNode.click();
 	downloadAnchorNode.remove();
 }
-
-class ElectionData {
-	constructor(mode, sheets) {
-		//console.log(mode);
-		//console.log(worksheets);
-		switch (mode) {
-			case DataMode.Original:
-				this.mode = DataMode.Original;
-				for (let i = 0; i < worksheets.length; i++) {
-					let worksheet = worksheets[i];
-					//parse rows & columns
-					let range = xlsx.utils.decode_range(worksheet['!ref']);
-					let nameChanges = {
-						filter: [
-							'Manually Counted Emergency',
-							'Absentee / Military',
-							'Federal',
-							'Affidavit',
-							'Scattered',
-							'Absentee/Military',
-							'Emergency',
-							'Special Presidential',
-						],
-						conversion: {
-							'Public Counter': 'Total Votes',
-						},
-					};
-					for (let row = range.s.r, prefix = {}; row < range.e.r; row++) {
-						let name = module.exports.UseMajorParties
-							? worksheet['C' + rowIndexAsString(row)].v
-							: worksheet['C' + rowIndexAsString(row)].v.replace(/ *\([^)]*\) */g, '');
-
-						if (prefix.number != worksheet['A' + rowIndexAsString(row)].v) {
-							prefix = {
-								number: worksheet['A' + rowIndexAsString(row)].v,
-								color: getRandomColor(),
-							};
-						}
-
-						//Check if name is not considered or
-						//if name == "Public Counter" then change in worksheet to "Total Votes"
-						if (nameChanges.filter.includes(worksheet['C' + rowIndexAsString(row)].v)) {
-							continue;
-						} else if (nameChanges.conversion[worksheet['C' + rowIndexAsString(row)].v]) {
-							worksheet['C' + rowIndexAsString(row)].v =
-								nameChanges.conversion[worksheet['C' + rowIndexAsString(row)].v];
-						}
-
-						let districtNumber = joinDistrictNumbers(
-							prefix.number.toString(),
-							worksheet['B' + rowIndexAsString(row)].v.toString()
-						);
-						if (this[districtNumber] == undefined) {
-							this[districtNumber] = {};
-						}
-						let results = this[districtNumber];
-						if (worksheet['C' + rowIndexAsString(row)].v == 'Total Votes') {
-							results['Total Votes'] = 0;
-						} else {
-							results[worksheet['C' + rowIndexAsString(row)].v] =
-								worksheet['D' + rowIndexAsString(row)].v;
-							results['Total Votes'] += worksheet['D' + rowIndexAsString(row)].v;
-						}
-					}
-				}
-				break;
-			case DataMode.Unofficial:
-				this.mode = DataMode.Unofficial;
-				for (let i = 0; i < worksheets.length; i++) {
-					let worksheet = worksheets[i];
-					//console.log(worksheet);
-					//parse rows & columns
-					let range = xlsx.utils.decode_range(worksheet['!ref']);
-
-					let parentDistrict = worksheet['A1'].v.match(/([0-9])+/g)[0];
-					//console.log(parentDistrict);
-					let candidates = {};
-					for (let column = range.s.c + 2; column < range.e.c; column++) {
-						let name_address = xlsx.utils.encode_cell({ c: column, r: 1 });
-						let name = worksheet[name_address].v.toLowerCase().replace(/\b(\w)/g, (s) => s.toUpperCase());
-						if (module.exports.UseMajorParties) {
-							let tag_address = xlsx.utils.encode_cell({ c: column, r: 2 });
-							name += ' ' + worksheet[tag_address].v;
-						}
-						candidates[name] = column;
-						//console.log(name);
-					}
-					//console.log(candidates);
-					for (let row = range.s.r + 3, prefix = {}; row < range.e.r; row++) {
-						let head = worksheet[xlsx.utils.encode_cell({ c: 0, r: row })];
-						if (head == undefined) break;
-						let resultProperty;
-						if (head.v == 'Total') {
-							resultProperty = 'Total';
-						} else {
-							resultProperty = joinDistrictNumbers(parentDistrict, head.v.match(/([0-9])+/g)[0]);
-						}
-						if (this[resultProperty] == undefined) this[resultProperty] = {};
-						let tally = 0;
-						for (let candidate in candidates) {
-							let votes = worksheet[xlsx.utils.encode_cell({ c: candidates[candidate], r: row })].v;
-							this[resultProperty][candidate] = votes;
-							tally += votes;
-						}
-						this[resultProperty]['Total Votes'] = tally;
-					}
-				}
-				break;
-		}
-	}
-}
 function rowIndexAsString(row) {
 	return (row + 1).toString();
 }
@@ -706,7 +599,7 @@ function lerpCandidateColors(candidateQueue) {
 	}
 	return candidateA == undefined ? '#C0C0C0' : candidateA.color;
 }
-
+//Classes
 class Map {
 	constructor() {
 		return new mapboxgl.Map({
@@ -817,6 +710,116 @@ class LayerExpressions {
 		});
 	}
 }
+class ElectionData {
+	constructor(mode, sheets) {
+		//console.log(mode);
+		//console.log(worksheets);
+		switch (mode) {
+			case DataMode.Original:
+				this.mode = DataMode.Original;
+				for (let i = 0; i < worksheets.length; i++) {
+					let worksheet = worksheets[i];
+					//parse rows & columns
+					let range = xlsx.utils.decode_range(worksheet['!ref']);
+					let nameChanges = {
+						filter: [
+							'Manually Counted Emergency',
+							'Absentee / Military',
+							'Federal',
+							'Affidavit',
+							'Scattered',
+							'Absentee/Military',
+							'Emergency',
+							'Special Presidential',
+						],
+						conversion: {
+							'Public Counter': 'Total Votes',
+						},
+					};
+					for (let row = range.s.r, prefix = {}; row < range.e.r; row++) {
+						let name = module.exports.UseMajorParties
+							? worksheet['C' + rowIndexAsString(row)].v
+							: worksheet['C' + rowIndexAsString(row)].v.replace(/ *\([^)]*\) */g, '');
+
+						if (prefix.number != worksheet['A' + rowIndexAsString(row)].v) {
+							prefix = {
+								number: worksheet['A' + rowIndexAsString(row)].v,
+								color: getRandomColor(),
+							};
+						}
+
+						//Check if name is not considered or
+						//if name == "Public Counter" then change in worksheet to "Total Votes"
+						if (nameChanges.filter.includes(worksheet['C' + rowIndexAsString(row)].v)) {
+							continue;
+						} else if (nameChanges.conversion[worksheet['C' + rowIndexAsString(row)].v]) {
+							worksheet['C' + rowIndexAsString(row)].v =
+								nameChanges.conversion[worksheet['C' + rowIndexAsString(row)].v];
+						}
+
+						let districtNumber = joinDistrictNumbers(
+							prefix.number.toString(),
+							worksheet['B' + rowIndexAsString(row)].v.toString()
+						);
+						if (this[districtNumber] == undefined) {
+							this[districtNumber] = {};
+						}
+						let results = this[districtNumber];
+						if (worksheet['C' + rowIndexAsString(row)].v == 'Total Votes') {
+							results['Total Votes'] = 0;
+						} else {
+							results[worksheet['C' + rowIndexAsString(row)].v] =
+								worksheet['D' + rowIndexAsString(row)].v;
+							results['Total Votes'] += worksheet['D' + rowIndexAsString(row)].v;
+						}
+					}
+				}
+				break;
+			case DataMode.Unofficial:
+				this.mode = DataMode.Unofficial;
+				for (let i = 0; i < worksheets.length; i++) {
+					let worksheet = worksheets[i];
+					//console.log(worksheet);
+					//parse rows & columns
+					let range = xlsx.utils.decode_range(worksheet['!ref']);
+
+					let parentDistrict = worksheet['A1'].v.match(/([0-9])+/g)[0];
+					//console.log(parentDistrict);
+					let candidates = {};
+					for (let column = range.s.c + 2; column < range.e.c; column++) {
+						let name_address = xlsx.utils.encode_cell({ c: column, r: 1 });
+						let name = worksheet[name_address].v.toLowerCase().replace(/\b(\w)/g, (s) => s.toUpperCase());
+						if (module.exports.UseMajorParties) {
+							let tag_address = xlsx.utils.encode_cell({ c: column, r: 2 });
+							name += ' ' + worksheet[tag_address].v;
+						}
+						candidates[name] = column;
+						//console.log(name);
+					}
+					//console.log(candidates);
+					for (let row = range.s.r + 3, prefix = {}; row < range.e.r; row++) {
+						let head = worksheet[xlsx.utils.encode_cell({ c: 0, r: row })];
+						if (head == undefined) break;
+						let resultProperty;
+						if (head.v == 'Total') {
+							resultProperty = 'Total';
+						} else {
+							resultProperty = joinDistrictNumbers(parentDistrict, head.v.match(/([0-9])+/g)[0]);
+						}
+						if (this[resultProperty] == undefined) this[resultProperty] = {};
+						let tally = 0;
+						for (let candidate in candidates) {
+							let votes = worksheet[xlsx.utils.encode_cell({ c: candidates[candidate], r: row })].v;
+							this[resultProperty][candidate] = votes;
+							tally += votes;
+						}
+						this[resultProperty]['Total Votes'] = tally;
+					}
+				}
+				break;
+		}
+	}
+}
 class NameBasedResults {
 	constructor(districtResults) {
 		this.candidates = {};
@@ -825,9 +828,14 @@ class NameBasedResults {
 			votes: 0,
 		};
 		this.isTie = true;
+		this.totalVotes = 0;
 		for (let candidate in districtResults) {
-			if (candidate == 'Total Votes') continue;
+			if (districtResults[candidate] == undefined) continue;
+			if (candidate == 'Total Votes') {
+				continue;
+			}
 			let mCandidate = candidate.replace(/ *\([^)]*\) */g, '');
+			if (mCandidate.length < 4) continue;
 			if (this.candidates[mCandidate] == undefined) {
 				this.candidates[mCandidate] = {
 					votes: districtResults[candidate],
@@ -836,6 +844,7 @@ class NameBasedResults {
 			} else {
 				this.candidates[mCandidate].votes += districtResults[candidate];
 			}
+			this.totalVotes += districtResults[candidate];
 			if (this.candidates[mCandidate].votes > this.highest.votes) {
 				this.highest.name = mCandidate;
 				this.highest.votes = this.candidates[mCandidate].votes;
@@ -845,7 +854,8 @@ class NameBasedResults {
 			if (this.candidates[candidate].votes == this.highest.votes) this.isTie = this.isTie && true;
 			else this.isTie = this.isTie && false;
 		}
-		this.highest.votes = this.candidates[this.highest.name].votes;
+		if (this.highest.name != '') this.highest.votes = this.candidates[this.highest.name].votes;
+		else return;
 		//console.log(this.isTie);
 		this.color = this.isTie
 			? lerpCandidateColors(this.toCandidateQueue())
@@ -867,8 +877,69 @@ NameBasedResults.prototype.toCandidateQueue = function () {
 	});
 	return candidateQueue;
 };
+NameBasedResults.prototype.merge = function (other) {
+	let candidates = {};
+	for (let candidate in this.candidates) {
+		candidates[candidate] = this.candidates[candidate].votes;
+	}
+	if (other instanceof NameBasedResults) {
+		for (let candidate in other.candidates) {
+			if (candidates[candidate] == undefined) {
+				candidates[candidate] = other.candidates[candidate].votes;
+			} else {
+				candidates[candidate] += other.candidates[candidate].votes;
+			}
+		}
+	} else {
+		if (other['Total Votes'] == 0) return;
+		for (let candidate in other) {
+			if (candidates[candidate] == undefined) {
+				candidates[candidate] = other[candidate];
+			} else {
+				candidates[candidate] += other[candidate];
+			}
+		}
+	}
+	Object.assign(this, new NameBasedResults(candidates));
+};
+class TotalElectionCount extends NameBasedResults {
+	constructor(electionData) {
+		super({ 'Total Votes': 0 });
+		for (let district in electionData) {
+			this.merge(electionData[district]);
+		}
+	}
+}
+TotalElectionCount.prototype.toString = function () {
+	let queue = this.toCandidateQueue();
+	let returnString = '';
+	if (queue.length) {
+		let first = queue.pop();
+		returnString += `In this election ${first.name} came in first with ${Math.round(
+			(first.votes / this.totalVotes) * 100
+		)}% of the vote which amounted to ${first.votes} votes.`;
+		if (queue.length) {
+			let second = queue.pop();
+			returnString += ` ${second.name} came in second and obtained ${Math.round(
+				(second.votes / this.totalVotes) * 100
+			)}% of the vote which amounted to ${second.votes} votes.`;
+			if (queue.length) {
+				returnString += ' Other candidates included ';
+				while (queue.length) {
+					let runOff = queue.pop();
+					returnString += `${runOff.name} who obtained ${Math.round(
+						(runOff.votes / this.totalVotes) * 100
+					)}% of the vote which amounted to ${runOff.votes} votes${queue.length ? ' and, ' : '.'}`;
+				}
+			}
+		}
+		returnString += ` The total non-writein votes in this election were ${this.totalVotes}.`;
+		return returnString;
+	}
+	return 'There were no candidates in this election.';
+};
 
-},{"js-queue/stack":6,"mapbox-gl":7,"tinyqueue":9,"xlsx":12}],3:[function(require,module,exports){
+},{"jquery":5,"js-queue/stack":6,"mapbox-gl":7,"tinyqueue":9,"xlsx":12}],3:[function(require,module,exports){
 
 },{}],4:[function(require,module,exports){
 class Stack{

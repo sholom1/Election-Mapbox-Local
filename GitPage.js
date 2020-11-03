@@ -5,14 +5,11 @@ var realBtn = document.getElementById('real-file');
 var detailsButton = document.getElementById('details-button');
 var filetxt = document.getElementById('file-text');
 
-jQuery(document).ready(function () {
-	
-
-	if (box.style.display == '') box.style.display = 'none';
-
-	customBtn.addEventListener('click', function () {
-		realBtn.click();
-	});
+jQuery(function () {
+	if (customBtn != null)
+		customBtn.addEventListener('click', function () {
+			realBtn.click();
+		});
 	realBtn.addEventListener('change', function (event) {
 		if (event.target.files[0].name.includes('.xlsx')) {
 			ElectionMap.loadXLSXLocal(event.target.files[0], function (e) {
