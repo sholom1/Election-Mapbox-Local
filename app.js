@@ -856,25 +856,28 @@ TotalElectionCount.prototype.toString = function () {
 	let returnString = '';
 	if (queue.length) {
 		let first = queue.pop();
+		let formatter = new Intl.NumberFormat('en-US');
 		returnString += `In this election ${first.name} came in first with ${Math.round(
 			(first.votes / this.totalVotes) * 100
-		)}% of the vote which amounted to ${first.votes} votes.`;
+		)}% of the vote which amounted to ${first.votes.toLocaleString()} votes.`;
 		if (queue.length) {
 			let second = queue.pop();
 			returnString += ` ${second.name} came in second and obtained ${Math.round(
 				(second.votes / this.totalVotes) * 100
-			)}% of the vote which amounted to ${second.votes} votes.`;
+			)}% of the vote which amounted to ${second.votes.toLocaleString()}`;
 			if (queue.length) {
 				returnString += ' Other candidates included ';
 				while (queue.length) {
 					let runOff = queue.pop();
 					returnString += `${runOff.name} who obtained ${Math.round(
 						(runOff.votes / this.totalVotes) * 100
-					)}% of the vote which amounted to ${runOff.votes} votes${queue.length ? ' and, ' : '.'}`;
+					)}% of the vote which amounted to ${runOff.votes.toLocaleString()} votes${
+						queue.length ? ', and ' : '.'
+					}`;
 				}
 			}
 		}
-		returnString += ` The total non-writein votes in this election were ${this.totalVotes}.`;
+		returnString += ` The total non-write-in votes in this election were ${this.totalVotes.toLocaleString()}. This count does not include write-in's.`;
 		return returnString;
 	}
 	return 'There were no candidates in this election.';
