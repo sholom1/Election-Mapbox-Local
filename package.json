@@ -9,7 +9,7 @@
 		"js-queue": "^2.0.0",
 		"mapbox-gl": "^1.8.1",
 		"tinyqueue": "^2.0.3",
-		"watchify": "^3.11.1",
+		"watchify": "^4.0.0",
 		"xlsx": "^0.15.5"
 	},
 	"devDependencies": {
