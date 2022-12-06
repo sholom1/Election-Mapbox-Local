@@ -7,7 +7,7 @@
 		"common": "^0.2.5",
 		"jquery": "^3.5.0",
 		"js-queue": "^2.0.0",
-		"mapbox-gl": "^1.8.1",
+		"mapbox-gl": "^1.13.2",
 		"tinyqueue": "^2.0.3",
 		"watchify": "^4.0.0",
 		"xlsx": "^0.15.5"
