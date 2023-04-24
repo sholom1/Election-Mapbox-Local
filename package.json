@@ -10,7 +10,7 @@
 		"mapbox-gl": "^1.13.2",
 		"tinyqueue": "^2.0.3",
 		"watchify": "^4.0.0",
-		"xlsx": "^0.15.5"
+		"xlsx": "^0.18.5"
 	},
 	"devDependencies": {
 		"browserify": "^16.5.1"
